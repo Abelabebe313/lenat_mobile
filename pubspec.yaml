@@ -1,0 +1,41 @@
+name: lenat_mobile
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.6.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  get_it: ^8.0.3
+  hugeicons: ^0.0.11
+  pinput: ^5.0.1
+  provider: ^6.1.5
+  shared_preferences: ^2.5.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/icons/
+    - assets/images/
+
+fonts:
+  - family: NotoSansEthiopic
+    fonts:
+      - asset: assets/fonts/NotoSansEthiopic/NotoSansEthiopic-Light.ttf
+        weight: 300
+      - asset: assets/fonts/NotoSansEthiopic/NotoSansEthiopic-Regular.ttf
+        weight: 400
+      - asset: assets/fonts/NotoSansEthiopic/NotoSansEthiopic-Medium.ttf
+        weight: 500
+      - asset: assets/fonts/NotoSansEthiopic/NotoSansEthiopic-SemiBold.ttf
+        weight: 600
+      - asset: assets/fonts/NotoSansEthiopic/NotoSansEthiopic-Bold.ttf
+        weight: 700
