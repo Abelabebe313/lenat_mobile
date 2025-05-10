@@ -11,6 +11,8 @@
 - 🛒 **Marketplace**: Shop pregnancy and baby care products directly in-app.
 - 👩‍⚕️ **Profile & Personalization**: Custom recommendations based on user stage and needs.
 - 🔐 **Authentication Flow**: Onboarding, login/signup, and profile setup for new users.
+- 🤖 **AI Chat Bot**: Conversational agent to answer pregnancy and parenting questions
+- 🩺 **Consultation**: Book or chat with certified professionals (e.g., midwives, pediatricians)
 
 ---
 
