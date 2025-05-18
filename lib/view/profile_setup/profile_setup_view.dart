@@ -12,8 +12,39 @@ class ProfileSetupView extends StatefulWidget {
 class _ProfileSetupViewState extends State<ProfileSetupView> {
   String pregnancy = "yes";
   bool isChecked = false;
-  String selectedValue = "1";
-  final List<String> options = ["1", "2", "3", "4", "5"];
+  String selectedValue = "1ኛ ሳምንት";
+  final List<String> options = [
+    "1ኛ ሳምንት",
+    "2ኛ ሳምንት",
+    "3ኛ ሳምንት",
+    "4ኛ ሳምንት",
+    "5ኛ ሳምንት",
+    "6ኛ ሳምንት",
+    "7ኛ ሳምንት",
+    "8ኛ ሳምንት",
+    "9ኛ ሳምንት",
+    "10ኛ ሳምንት",
+    "11ኛ ሳምንት",
+    "12ኛ ሳምንት",
+    "13ኛ ሳምንት",
+    "14ኛ ሳምንት",
+    "15ኛ ሳምንት",
+    "16ኛ ሳምንት",
+    "17ኛ ሳምንት",
+    "18ኛ ሳምንት",
+    "19ኛ ሳምንት",
+    "20ኛ ሳምንት",
+    "21ኛ ሳምንት",
+    "22ኛ ሳምንት",
+    "23ኛ ሳምንት",
+    "24ኛ ሳምንት",
+    "25ኛ ሳምንት",
+    "26ኛ ሳምንት",
+    "27ኛ ሳምንት",
+    "28ኛ ሳምንት",
+    "29ኛ ሳምንት",
+    "30ኛ ሳምንት"
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -107,7 +138,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       pregnancyCard(
-                        label: "አዎንአዎን",
+                        label: "አዎን",
                         value: "yes",
                       ),
                       pregnancyCard(
@@ -189,6 +220,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                     ],
                   ),
                   const SizedBox(height: 20),
+                  // age field
                   Text(
                     "ዕድሜ",
                     style: TextStyle(
@@ -199,25 +231,62 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: TextFieldColor,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: TextFormField(
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        hintText: "ዕድሜ",
-                        hintStyle: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black.withOpacity(0.5),
-                          fontFamily: 'NotoSansEthiopic',
+                  Row(
+                    children: [
+                      // Min Age
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: TextFieldColor,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: TextFormField(
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              hintText: "ከ",
+                              hintStyle: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black.withOpacity(0.5),
+                                fontFamily: 'NotoSansEthiopic',
+                              ),
+                              border: InputBorder.none,
+                            ),
+                          ),
                         ),
-                        border: InputBorder.none,
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        " - ",
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(width: 8),
+                      // Max Age
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: TextFieldColor,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: TextFormField(
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              hintText: "እስከ",
+                              hintStyle: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black.withOpacity(0.5),
+                                fontFamily: 'NotoSansEthiopic',
+                              ),
+                              border: InputBorder.none,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

@@ -4,6 +4,8 @@ import 'package:lenat_mobile/view/auth/login_view.dart';
 import 'package:lenat_mobile/view/auth/verfication_view.dart';
 import 'package:lenat_mobile/view/cart/cart_view.dart';
 import 'package:lenat_mobile/view/checkout/checkout_view.dart';
+import 'package:lenat_mobile/view/content/content_feed_view.dart';
+import 'package:lenat_mobile/view/content/widget/content_feed_item.dart';
 import 'package:lenat_mobile/view/notification/notification_view.dart';
 import 'package:lenat_mobile/view/onboarding/onboarding_view.dart';
 import 'package:lenat_mobile/view/premium/premium_screen.dart';
@@ -45,6 +47,8 @@ class AppRouter {
 
       case '/premium':
         return MaterialPageRoute(builder: (_) => PremiumView());
+
+      // market
       
       case '/cart':
         return MaterialPageRoute(builder: (_) => const CartView());
@@ -52,6 +56,10 @@ class AppRouter {
       case '/checkout':
         return MaterialPageRoute(builder: (_) => CheckOutView());
 
+      // Media
+      case '/content_feed':
+        return MaterialPageRoute(builder: (_) => ContentFeedView());
+      // Trivia
       case '/trivia':
         return MaterialPageRoute(builder: (_) => const TriviaView());
 

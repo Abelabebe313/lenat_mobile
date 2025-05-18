@@ -24,24 +24,16 @@ class _TriviaGamePageState extends State<TriviaGamePage> {
     Question(
       text:
           "Lorem ipsum dolor sit amet consectetur. Velit mauris etiam tortor adipiscing dis?",
-      image: "https://via.placeholder.com/150",
-      answers: [
-        "Correct answer",
-        "Wrong 1",
-        "Wrong 2",
-        "Wrong 3"
-      ],
+      image:
+          "https://images.unsplash.com/photo-1538678867871-8a43e7487746?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      answers: ["Correct answer", "Wrong 1", "Wrong 2", "Wrong 3"],
       correctAnswerIndex: 0,
     ),
     Question(
       text: "Second question?",
-      image: "https://via.placeholder.com/150",
-      answers: [
-        "Wrong 1",
-        "Correct answer", 
-        "Wrong 2",
-        "Wrong 3"
-      ],
+      image:
+          "https://images.unsplash.com/photo-1567073931033-07972e6081bd?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      answers: ["Wrong 1", "Correct answer", "Wrong 2", "Wrong 3"],
       correctAnswerIndex: 1,
     ),
   ];
@@ -180,9 +172,14 @@ class _TriviaGamePageState extends State<TriviaGamePage> {
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      Image.network(
-                        question.image,
-                        height: 150,
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          question.image,
+                          height: 200,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Text(

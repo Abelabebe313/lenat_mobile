@@ -73,7 +73,7 @@ class _LoginViewState extends State<LoginView> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("ኢሜይል / ስልክ ቁጥር", style: titleStyle),
+                        Text("ስልክ ቁጥር", style: titleStyle),
                         const SizedBox(height: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -82,9 +82,9 @@ class _LoginViewState extends State<LoginView> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: TextFormField(
-                            keyboardType: TextInputType.emailAddress,
+                            keyboardType: TextInputType.phone,
                             decoration: InputDecoration(
-                              hintText: "lenat@gmail.com",
+                              hintText: "09... / 07...",
                               hintStyle: hintStyle,
                               border: InputBorder.none,
                             ),

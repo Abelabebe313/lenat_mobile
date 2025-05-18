@@ -247,7 +247,7 @@ class ProfilePage extends StatelessWidget {
             ),
           ),
           child: Text(
-            "ውጣ",
+            "አካውንት ሰርዝ",
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,

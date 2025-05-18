@@ -85,7 +85,12 @@ class _MediaViewState extends State<MediaView> {
                   scrollDirection: Axis.horizontal,
                   itemCount: 10,
                   itemBuilder: (context, index) {
-                    return _mediaFavoriteCard();
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, '/content_feed');
+                      },
+                      child: _mediaFavoriteCard(),
+                    );
                   },
                 ),
               ),
