@@ -49,9 +49,7 @@ class _AIChatViewState extends State<AIChatView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         title: const Text("የድጋፍ ቻት"),
         actions: [
           // CLEAR CHAT

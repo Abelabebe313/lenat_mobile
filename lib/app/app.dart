@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lenat_mobile/core/colors.dart';
 import 'package:lenat_mobile/core/router.dart';
 import 'package:provider/provider.dart';
 import 'package:lenat_mobile/view/main/main_viewmodel.dart';
@@ -19,6 +20,10 @@ class MyApp extends StatelessWidget {
         title: 'Lenat Mobile App',
         theme: ThemeData(
           primarySwatch: Colors.blue,
+          scaffoldBackgroundColor: scaffoldBackgroundColor,
+          appBarTheme: AppBarTheme(
+            backgroundColor: appBarBackgroundColor,
+          ),
         ),
         onGenerateRoute: AppRouter.generateRoute,
         initialRoute: '/',

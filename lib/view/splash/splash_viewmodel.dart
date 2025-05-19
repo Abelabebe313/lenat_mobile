@@ -6,7 +6,8 @@ import '../../app/service_locator.dart';
 
 class SplashViewModel extends ChangeNotifier {
   final AuthService _authService = locator<AuthService>();
-  final LocalStorageService _localStorageService = locator<LocalStorageService>();
+  final LocalStorageService _localStorageService =
+      locator<LocalStorageService>();
 
   Future<String> decideNextRoute() async {
     final isFirstLaunch = await _localStorageService.isFirstLaunch();

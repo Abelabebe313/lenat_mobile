@@ -1,5 +1,8 @@
+import 'package:chapasdk/chapasdk.dart';
 import 'package:flutter/material.dart';
 import 'package:lenat_mobile/core/colors.dart';
+import 'package:lenat_mobile/view/premium/premium_viewmodel.dart';
+import 'package:provider/provider.dart';
 
 class PremiumView extends StatefulWidget {
   const PremiumView({super.key});
@@ -41,6 +44,14 @@ class _PremiumViewState extends State<PremiumView> {
       ],
     ),
   ];
+  late final vm;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    // vm = Provider.of<PremiumViewModel>(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -106,9 +117,7 @@ class _PremiumViewState extends State<PremiumView> {
                       margin: const EdgeInsets.only(bottom: 8),
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: isSelected
-                            ? Primary
-                            : Colors.grey.shade100,
+                        color: isSelected ? Primary : Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isSelected ? Colors.blue : Colors.transparent,
@@ -242,7 +251,36 @@ class _PremiumViewState extends State<PremiumView> {
               child: SizedBox(
                 width: MediaQuery.of(context).size.width * 0.7,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    // vm.proceedToPayment();
+                    Chapa.paymentParameters(
+                      context: context,
+                      publicKey:
+                          'CHAPUBK_TEST-j2vSkAytRDGAk3mXAVRhb9C6tyALG7Ep',
+                      currency: 'ETB',
+                      amount: options[selectedIndex].price,
+                      email: 'fetanchapa.co',
+                      phone: '0900123456',
+                      firstName: 'Israel',
+                      lastName: 'Goytom',
+                      txRef: 'txn_${DateTime.now().millisecondsSinceEpoch}',
+                      title: 'Order Payment',
+                      desc: 'Payment for order #12345',
+                      nativeCheckout: true,
+                      namedRouteFallBack: '/premium',
+                      showPaymentMethodsOnGridView: true,
+                      availablePaymentMethods: [
+                        'mpesa',
+                        'cbebirr',
+                        'telebirr',
+                        'ebirr',
+                      ],
+                      onPaymentFinished: (message, reference, amount) {
+                        Navigator.pop(context);
+                      },
+                      buttonColor: Primary,
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Primary,
                     shape: RoundedRectangleBorder(

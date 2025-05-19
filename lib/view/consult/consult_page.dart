@@ -18,7 +18,6 @@ class _ConsultViewState extends State<ConsultView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
           'ቀጠሮ ይያዙ',
@@ -28,7 +27,6 @@ class _ConsultViewState extends State<ConsultView> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
       ),
