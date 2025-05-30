@@ -1,4 +1,7 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'package:flutter/material.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:lenat_mobile/core/colors.dart';
 
 class ConsultView extends StatefulWidget {
@@ -9,11 +12,107 @@ class ConsultView extends StatefulWidget {
 }
 
 class _ConsultViewState extends State<ConsultView> {
-  String choosenPlace = "በቻት";
+  String choosenPlace = "TEXT";
   String selectedDisability = "Deaf";
   String selectedSurgery = "Heart";
-  final List<String> disabilities = ["Dicapitated", "Paralized", "Deaf"];
+  final List<String> disabilities = ["Decapitated", "Paralyzed", "Deaf"];
   final List<String> surgeries = ["Cranial", "Heart", "Arm"];
+  final TextEditingController patientNotesController = TextEditingController();
+
+  String getAppointmentsQuery = r'''
+    query GetAppointments {
+      consultant_appointments {
+        id
+        type
+        surgery_history
+        payment_state
+        patient_notes
+        medical_condition
+        doctor_id
+        created_at
+      }
+    }
+  ''';
+
+  void fetchAppointments(BuildContext context) async {
+    final client = GraphQLProvider.of(context).value;
+
+    final result = await client.query(
+      QueryOptions(document: gql(getAppointmentsQuery)),
+    );
+
+    if (result.hasException) {
+      print(result.exception.toString());
+    } else {
+      print(result.data);
+      // Or use setState to store and display appointments
+      setState(() {
+        // _result = result.data.toString();
+      });
+    }
+  }
+
+  final String addAppointmentMutation = r'''
+    mutation AddAppointment(
+      $type: appointment_type!
+      $description: String!
+      $surgery_history: String!
+      $payment_state: enum_generic_state_enum!
+      $patient_notes: String!
+      $medical_condition: String!
+      $doctor_id: uuid!
+      $user_id: uuid!
+      $scheduled_at: timestamptz!
+    ) {
+      insert_consultant_appointments(objects: {
+        type: $type
+        description: $description
+        surgery_history: $surgery_history
+        payment_state: $payment_state
+        patient_notes: $patient_notes
+        medical_condition: $medical_condition
+        doctor_id: $doctor_id
+        user_id: $user_id
+        scheduled_at: $scheduled_at
+      }) {
+        returning {
+          id
+        }
+      }
+    }
+  ''';
+
+  void saveAppointment(BuildContext context) async {
+    final client = GraphQLProvider.of(context).value;
+
+    final result = await client.mutate(MutationOptions(
+      document: gql(addAppointmentMutation),
+      variables: {
+        'type': choosenPlace,
+        'description': 'Texting Descriptions...',
+        'payment_state': "UnPaid",
+        'medical_condition': selectedDisability,
+        'surgery_history': selectedSurgery,
+        'patient_notes': patientNotesController.text.trim(),
+        'doctor_id': 'f3c9eb8a-33f2-4cd9-9cc2-897ab024d326',
+        'user_id': 'f3c9eb8a-33f2-4cd9-9cc2-897ab024d326',
+        'scheduled_at': DateTime.now().toIso8601String(),
+      },
+    ));
+
+    if (result.hasException) {
+      print('Error: ${result.exception.toString()}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save appointment')),
+      );
+    } else {
+      print(
+          'Success! Appointment saved with ID: ${result.data!['insert_consultant_appointments']['id']}');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Appointment saved successfully')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +133,7 @@ class _ConsultViewState extends State<ConsultView> {
         padding: EdgeInsets.symmetric(horizontal: 10.0),
         children: [
           const SizedBox(height: 10.0),
+
           // Name
           Column(
             spacing: 8.0,
@@ -58,7 +158,7 @@ class _ConsultViewState extends State<ConsultView> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: TextFormField(
-                  keyboardType: TextInputType.number,
+                  keyboardType: TextInputType.text,
                   decoration: InputDecoration(
                     hintText: "ስም",
                     hintStyle: TextStyle(
@@ -214,48 +314,13 @@ class _ConsultViewState extends State<ConsultView> {
               ),
               Row(
                 children: [
-                  // Outlined button (Cancel Time)
-                  Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 8.0,
-                        ),
-                        side: const BorderSide(
-                          color: Colors.grey,
-                          width: 1.0,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        backgroundColor: choosenPlace == "ኦንላይን ጥሪ"
-                            ? Color(0xFF3389E7)
-                            : Colors.white,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          choosenPlace = "ኦንላይን ጥሪ";
-                        });
-                      },
-                      child: Text(
-                        'ኦንላይን ጥሪ',
-                        style: TextStyle(
-                          fontFamily: 'NotoSansEthiopic',
-                          fontSize: 16,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  // Filled button (Continue)
                   Expanded(
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
                           vertical: 8.0,
                         ),
-                        backgroundColor: choosenPlace == "በቻት"
+                        backgroundColor: choosenPlace == "CALL"
                             ? Color(0xFF3389E7)
                             : Colors.white, // Use your primary blue
                         shape: RoundedRectangleBorder(
@@ -264,12 +329,50 @@ class _ConsultViewState extends State<ConsultView> {
                       ),
                       onPressed: () {
                         setState(() {
-                          choosenPlace = "በቻት";
+                          choosenPlace = "CALL";
                         });
                       },
                       icon: Icon(
                         Icons.check_circle,
-                        color: choosenPlace == "በቻት"
+                        color: choosenPlace == "CALL"
+                            ? Colors.white
+                            : Colors.transparent,
+                        size: 20,
+                      ),
+                      label: Text(
+                        'ጥሪ',
+                        style: TextStyle(
+                          fontFamily: 'NotoSansEthiopic',
+                          fontSize: 16,
+                          color: choosenPlace == "CALL"
+                              ? Colors.white
+                              : Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8.0,
+                        ),
+                        backgroundColor: choosenPlace == "TEXT"
+                            ? Color(0xFF3389E7)
+                            : Colors.white, // Use your primary blue
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          choosenPlace = "TEXT";
+                        });
+                      },
+                      icon: Icon(
+                        Icons.check_circle,
+                        color: choosenPlace == "TEXT"
                             ? Colors.white
                             : Colors.transparent,
                         size: 20,
@@ -279,7 +382,7 @@ class _ConsultViewState extends State<ConsultView> {
                         style: TextStyle(
                           fontFamily: 'NotoSansEthiopic',
                           fontSize: 16,
-                          color: choosenPlace == "በቻት"
+                          color: choosenPlace == "TEXT"
                               ? Colors.white
                               : Colors.black,
                         ),
@@ -362,7 +465,8 @@ class _ConsultViewState extends State<ConsultView> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: TextFormField(
-                  keyboardType: TextInputType.number,
+                  controller: patientNotesController,
+                  keyboardType: TextInputType.text,
                   maxLines: 5,
                   decoration: InputDecoration(
                     hintText: "መልእክት",
@@ -382,7 +486,9 @@ class _ConsultViewState extends State<ConsultView> {
 
           // Submit Button
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              saveAppointment(context);
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: Primary,
               shape: RoundedRectangleBorder(
