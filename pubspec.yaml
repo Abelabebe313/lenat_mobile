@@ -7,6 +7,7 @@ environment:
   sdk: ^3.6.1
 
 dependencies:
+  chapasdk: ^0.0.8+1
   flutter:
     sdk: flutter
   flutter_secure_storage: ^9.2.4
