@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:lenat_mobile/core/colors.dart';
+import 'package:lenat_mobile/view/auth/auth_viewmodel.dart';
 import 'package:pinput/pinput.dart';
+import 'package:provider/provider.dart';
+import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class VerificationView extends StatefulWidget {
   const VerificationView({super.key});
@@ -10,6 +14,43 @@ class VerificationView extends StatefulWidget {
 }
 
 class _VerificationViewState extends State<VerificationView> {
+  final _otpController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  bool _loading = false;
+  Timer? _timer;
+  int _remainingSeconds = 120; // 2 minutes in seconds
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _otpController.dispose();
+    super.dispose();
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        if (_remainingSeconds > 0) {
+          _remainingSeconds--;
+        } else {
+          _timer?.cancel();
+        }
+      });
+    });
+  }
+
+  String _formatTime() {
+    final minutes = (_remainingSeconds ~/ 60).toString().padLeft(2, '0');
+    final seconds = (_remainingSeconds % 60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
+  }
+
   final defaultPinTheme = PinTheme(
     width: 56,
     height: 56,
@@ -23,8 +64,55 @@ class _VerificationViewState extends State<VerificationView> {
       borderRadius: BorderRadius.circular(12),
     ),
   );
+
   @override
   Widget build(BuildContext context) {
+    final email = ModalRoute.of(context)?.settings.arguments as String?;
+    final viewModel = Provider.of<AuthViewModel>(context);
+
+    print('Verification view - Email received: $email'); // Debug print
+
+    // If email is null, try to get it from SharedPreferences
+    if (email == null) {
+      SharedPreferences.getInstance().then((prefs) {
+        final savedEmail = prefs.getString('last_email');
+        print('Retrieved email from SharedPreferences: $savedEmail');
+        if (savedEmail != null && context.mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const VerificationView(),
+              settings: RouteSettings(arguments: savedEmail),
+            ),
+          );
+        }
+      });
+    }
+
+    if (email == null) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                "Error: Missing email",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Go Back"),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -52,82 +140,101 @@ class _VerificationViewState extends State<VerificationView> {
           final inputFontSize = isTablet ? 16.0 : 14.0;
           final buttonPadding = isTablet ? 16.0 : 12.0;
 
-          return Padding(
-            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 30),
-                Center(
-                  child: Text(
-                    "እባክዎ የማረጋገጫ \nኮድ ያስገቡ",
+          return SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 30),
+                  Center(
+                    child: Text(
+                      "እባክዎ የማረጋገጫ \nኮድ ያስገቡ",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: titleFontSize,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'NotoSansEthiopic',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    "OTP has been sent to:\n$email",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: titleFontSize,
-                      fontWeight: FontWeight.w700,
+                      fontSize: inputFontSize,
+                      color: Colors.grey[600],
                       fontFamily: 'NotoSansEthiopic',
                     ),
                   ),
-                ),
-                const SizedBox(height: 30),
-                Pinput(
-                  length: 5,
-                  defaultPinTheme: defaultPinTheme,
-                  focusedPinTheme: defaultPinTheme.copyWith(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.blue),
-                    ),
-                  ),
-                  onCompleted: (value) {
-                    print('Entered code: $value');
-                    // TODO: Add your verification logic here
-                  },
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      "00:45",
-                      textAlign: TextAlign.end,
-                      style: TextStyle(
-                        fontSize: inputFontSize,
-                        fontWeight: FontWeight.w700,
-                        color: Primary,
-                        fontFamily: 'NotoSansEthiopic',
+                  const SizedBox(height: 30),
+                  Pinput(
+                    length: 6,
+                    key: _formKey,
+                    controller: _otpController,
+                    defaultPinTheme: defaultPinTheme,
+                    focusedPinTheme: defaultPinTheme.copyWith(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.blue),
                       ),
                     ),
-                    const SizedBox(width: 10),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  "እቅፍ ይደርሳል ይህ የማይታወቅ ጽሁፍ ነው። ይህ የሚያስተዋውቅ ይህ የማይታወቅ ጽሁፍ ነው።",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: inputFontSize,
-                    fontWeight: FontWeight.w500,
-                    fontFamily: 'NotoSansEthiopic',
+                    onCompleted: (value) async {
+                      print('OTP entered: $value');
+                      setState(() => _loading = true);
+                      try {
+                        print('Verifying OTP for email: $email');
+                        final user =
+                            await viewModel.handleOtpCallback(email, value);
+                        print(
+                            'Verification result - isNewUser: ${user?.isNewUser}');
+                        if (context.mounted && user != null) {
+                          if (user.isNewUser) {
+                            // New user - go to gender selection to start profile setup
+                            Navigator.pushReplacementNamed(
+                                context, '/gender-selection');
+                          } else {
+                            // Existing user - go directly to main
+                            Navigator.pushReplacementNamed(context, '/main');
+                          }
+                        }
+                      } catch (e) {
+                        print('Verification error: $e');
+                        if (context.mounted) {
+                          String errorMessage = 'Verification failed';
+                          if (e.toString().contains('Invalid OTP')) {
+                            errorMessage =
+                                'Invalid verification code. Please try again.';
+                          } else if (e.toString().contains('Network')) {
+                            errorMessage =
+                                'Network error. Please check your connection.';
+                          } else if (e
+                              .toString()
+                              .contains('Malformed Authorization Header')) {
+                            errorMessage =
+                                'Authentication error. Please try again.';
+                          }
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(errorMessage),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      } finally {
+                        setState(() => _loading = false);
+                      }
+                    },
                   ),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "ኮድ አልደረሰዎትም?",
-                      style: TextStyle(
-                        fontSize: inputFontSize,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: 'NotoSansEthiopic',
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {},
-                      child: Text(
-                        "ይድገሙ",
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        _formatTime(),
+                        textAlign: TextAlign.end,
                         style: TextStyle(
                           fontSize: inputFontSize,
                           fontWeight: FontWeight.w700,
@@ -135,35 +242,74 @@ class _VerificationViewState extends State<VerificationView> {
                           fontFamily: 'NotoSansEthiopic',
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(
-                        context, "/gender-selection");
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isTablet ? 80 : 60,
-                      vertical: buttonPadding,
-                    ),
+                      const SizedBox(width: 10),
+                    ],
                   ),
-                  child: Text(
-                    "ይቀጥሉ",
+                  const SizedBox(height: 20),
+                  Text(
+                    "እቅፍ ይደርሳል ይህ የማይታወቅ ጽሁፍ ነው። ይህ የሚያስተዋውቅ ይህ የማይታወቅ ጽሁፍ ነው።",
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: inputFontSize,
                       fontWeight: FontWeight.w500,
-                      color: Colors.white,
                       fontFamily: 'NotoSansEthiopic',
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Didn't get Code?",
+                        style: TextStyle(
+                          fontSize: inputFontSize,
+                          fontWeight: FontWeight.w500,
+                          fontFamily: 'NotoSansEthiopic',
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: _remainingSeconds == 0
+                            ? () async {
+                                setState(() => _loading = true);
+                                try {
+                                  await viewModel.getAuthOtp(email);
+                                  setState(() {
+                                    _remainingSeconds = 120;
+                                    _startTimer();
+                                  });
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          content:
+                                              Text("Failed to resend OTP: $e")),
+                                    );
+                                  }
+                                } finally {
+                                  setState(() => _loading = false);
+                                }
+                              }
+                            : null,
+                        child: Text(
+                          "Resend Code",
+                          style: TextStyle(
+                            fontSize: inputFontSize,
+                            fontWeight: FontWeight.w700,
+                            color:
+                                _remainingSeconds == 0 ? Primary : Colors.grey,
+                            fontFamily: 'NotoSansEthiopic',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (_loading)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      child: CircularProgressIndicator(),
+                    ),
+                ],
+              ),
             ),
           );
         }),

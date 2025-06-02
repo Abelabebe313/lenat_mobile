@@ -9,11 +9,15 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_secure_storage: ^9.2.4
+  flutter_svg: ^2.1.0
   get_it: ^8.0.3
+  graphql_flutter: ^5.2.0
   hugeicons: ^0.0.11
   pinput: ^5.0.1
   provider: ^6.1.5
   shared_preferences: ^2.5.3
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:
@@ -25,6 +29,7 @@ flutter:
   assets:
     - assets/icons/
     - assets/images/
+    - assets/svg/
 
 fonts:
   - family: NotoSansEthiopic

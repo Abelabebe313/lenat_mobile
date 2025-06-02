@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lenat_mobile/core/router.dart';
+import 'package:lenat_mobile/view/auth/auth_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:lenat_mobile/view/main/main_viewmodel.dart';
 import 'package:lenat_mobile/view/splash/splash_viewmodel.dart';
@@ -13,6 +14,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => SplashViewModel()),
         ChangeNotifierProvider(create: (_) => MainViewModel()),
+        ChangeNotifierProvider(create: (_) => AuthViewModel()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lenat_mobile/core/colors.dart';
+import 'package:lenat_mobile/view/auth/auth_viewmodel.dart';
+import 'package:provider/provider.dart';
 
 class GenderSelectionView extends StatefulWidget {
   const GenderSelectionView({super.key});
@@ -10,9 +12,12 @@ class GenderSelectionView extends StatefulWidget {
 
 class _GenderSelectionViewState extends State<GenderSelectionView> {
   String selectedGender = "female";
+  bool _loading = false;
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = Provider.of<AuthViewModel>(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -75,11 +80,29 @@ class _GenderSelectionViewState extends State<GenderSelectionView> {
 
             /// Continue button
             ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacementNamed(
-                    context, '/profile-setup'
-                    );
-              },
+              onPressed: _loading
+                  ? null
+                  : () async {
+                      setState(() => _loading = true);
+                      try {
+                        await viewModel.updateUserProfile(
+                          gender: selectedGender,
+                        );
+                        if (context.mounted) {
+                          Navigator.pushReplacementNamed(
+                              context, '/profile-setup');
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text("Failed to save gender: $e")),
+                          );
+                        }
+                      } finally {
+                        setState(() => _loading = false);
+                      }
+                    },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Primary,
                 shape: RoundedRectangleBorder(
@@ -90,15 +113,24 @@ class _GenderSelectionViewState extends State<GenderSelectionView> {
                   vertical: 12,
                 ),
               ),
-              child: Text(
-                "ጉዞዎን ይጀምሩ",
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white,
-                  fontFamily: 'NotoSansEthiopic',
-                ),
-              ),
+              child: _loading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Text(
+                      "ጉዞዎን ይጀምሩ",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                        fontFamily: 'NotoSansEthiopic',
+                      ),
+                    ),
             ),
           ],
         ),
