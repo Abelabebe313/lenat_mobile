@@ -85,13 +85,15 @@ class _GenderSelectionViewState extends State<GenderSelectionView> {
                   : () async {
                       setState(() => _loading = true);
                       try {
-                        await viewModel.updateUserProfile(
-                          gender: selectedGender,
-                        );
-                        if (context.mounted) {
-                          Navigator.pushReplacementNamed(
-                              context, '/profile-setup');
-                        }
+                        Navigator.pushReplacementNamed(
+                            context, '/profile-setup');
+                        // await viewModel.updateUserProfile(
+                        //   gender: selectedGender,
+                        // );
+                        // if (context.mounted) {
+                        //   Navigator.pushReplacementNamed(
+                        //       context, '/profile-setup');
+                        // }
                       } catch (e) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(

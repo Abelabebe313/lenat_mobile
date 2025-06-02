@@ -202,7 +202,7 @@ class AuthService {
     final client = await GraphQLService.getClient();
     const query = r'''
       mutation {
-        auth_google {
+        auth_google(redirect_uri: "com.example.lenat_mobile:/oauth2redirect") {
           url
         }
       }
