@@ -6,6 +6,7 @@ import 'package:lenat_mobile/view/auth/auth_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:lenat_mobile/view/main/main_viewmodel.dart';
 import 'package:lenat_mobile/view/splash/splash_viewmodel.dart';
+import 'package:lenat_mobile/view/profile/profile_viewmodel.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -17,13 +18,14 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => SplashViewModel()),
         ChangeNotifierProvider(create: (_) => MainViewModel()),
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
+        ChangeNotifierProvider(create: (_) => ProfileViewModel()),
       ],
       child: GraphQLProvider(
         client: ValueNotifier(
           GraphQLClient(
             // link: HttpLink('http://92.205.167.80:8080/v1/graphql'),
             link: HttpLink(
-              'http://92.205.167.80:8080/v1beta1/relay',
+              'http://92.205.167.80:8080/v1/graphql',
               defaultHeaders: {
                 'x-hasura-admin-secret': '123',
               },

@@ -2,14 +2,16 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:lenat_mobile/services/graphql_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lenat_mobile/models/user_model.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'dart:convert';
 
 class AuthService {
   final _prefs = SharedPreferences.getInstance();
+  final _secureStorage = const FlutterSecureStorage();
 
-  // Remove mock flags since we're using real data now
   Future<bool> isLoggedIn() async {
-    final prefs = await _prefs;
-    return prefs.getString('access_token') != null;
+    final token = await _secureStorage.read(key: 'access_token');
+    return token != null;
   }
 
   Future<bool> isProfileComplete() async {
@@ -19,7 +21,6 @@ class AuthService {
 
   Future<String?> getAuthOtp(String email) async {
     try {
-      // Use unauthenticated client for OTP request
       final client = await GraphQLService.getUnauthenticatedClient();
       const query = r'''
         mutation($value: String!) {
@@ -55,7 +56,6 @@ class AuthService {
 
   Future<UserModel?> handleOtpCallback(String email, String code) async {
     try {
-      // Use unauthenticated client for OTP verification
       final client = await GraphQLService.getUnauthenticatedClient();
       const mutation = r'''
         mutation($value: String!, $code: String!) {
@@ -93,11 +93,15 @@ class AuthService {
         // Create user model
         final user = UserModel.fromJson(data);
 
-        // Store tokens and user data
-        final prefs = await _prefs;
-        await prefs.setString('access_token', data['access_token']);
-        await prefs.setString('refresh_token', data['refresh_token']);
-        await prefs.setString('user_data', user.toJson().toString());
+        // Store tokens securely
+        await _secureStorage.write(
+            key: 'access_token', value: data['access_token']);
+        await _secureStorage.write(
+            key: 'refresh_token', value: data['refresh_token']);
+
+        // Store user data
+        await _secureStorage.write(
+            key: 'user_data', value: jsonEncode(user.toJson()));
 
         return user;
       }
@@ -106,6 +110,20 @@ class AuthService {
     } catch (e) {
       print('Error verifying OTP: $e');
       rethrow;
+    }
+  }
+
+  Future<UserModel?> getCurrentUser() async {
+    try {
+      final userDataStr = await _secureStorage.read(key: 'user_data');
+      if (userDataStr != null) {
+        final userData = jsonDecode(userDataStr) as Map<String, dynamic>;
+        return UserModel.fromJson(userData);
+      }
+      return null;
+    } catch (e) {
+      print('Error getting current user: $e');
+      return null;
     }
   }
 
@@ -159,13 +177,10 @@ class AuthService {
 
       final data = result.data?['update_user_profile'];
       if (data != null) {
-        final prefs = await _prefs;
-        final userDataStr = prefs.getString('user_data');
-        if (userDataStr != null) {
-          final userData = Map<String, dynamic>.from(
-            Map<String, dynamic>.from(userDataStr as Map),
-          );
-          final updatedUser = UserModel.fromJson(userData).copyWith(
+        // Update local user data
+        final currentUser = await getCurrentUser();
+        if (currentUser != null) {
+          final updatedUser = currentUser.copyWith(
             gender: gender,
             profileImage: profileImage,
             fullName: fullName,
@@ -173,7 +188,8 @@ class AuthService {
             bio: bio,
             isNewUser: false,
           );
-          await prefs.setString('user_data', updatedUser.toJson().toString());
+          await _secureStorage.write(
+              key: 'user_data', value: jsonEncode(updatedUser.toJson()));
         }
       }
     } catch (e) {
@@ -182,19 +198,48 @@ class AuthService {
     }
   }
 
-  Future<UserModel?> getCurrentUser() async {
+  Future<String?> refreshToken() async {
     try {
-      final prefs = await _prefs;
-      final userDataStr = prefs.getString('user_data');
-      if (userDataStr != null) {
-        return UserModel.fromJson(
-          Map<String, dynamic>.from(userDataStr as Map),
-        );
+      final refreshToken = await _secureStorage.read(key: 'refresh_token');
+      if (refreshToken == null) {
+        throw Exception('No refresh token available');
       }
+
+      final client = await GraphQLService.getUnauthenticatedClient();
+      const mutation = r'''
+        mutation($refresh_token: String!) {
+          auth_refresh_tokens(refresh_token: $refresh_token) {
+            access_token
+            refresh_token
+          }
+        }
+      ''';
+
+      final result = await client.mutate(
+        MutationOptions(
+          document: gql(mutation),
+          variables: {'refresh_token': refreshToken},
+        ),
+      );
+
+      if (result.hasException) {
+        throw Exception(result.exception?.graphqlErrors.first.message ??
+            'Failed to refresh token');
+      }
+
+      final data = result.data?['refresh_token'];
+      if (data != null) {
+        await _secureStorage.write(
+            key: 'access_token', value: data['access_token']);
+        await _secureStorage.write(
+            key: 'refresh_token', value: data['refresh_token']);
+        return data['access_token'];
+      }
+
       return null;
     } catch (e) {
-      print('Error getting current user: $e');
-      return null;
+      print('Error refreshing token: $e');
+      rethrow;
     }
   }
 
@@ -284,5 +329,39 @@ class AuthService {
     ));
 
     return result.data?['auth_telegram_callback'];
+  }
+
+  Future<void> logout() async {
+    try {
+      final refreshToken = await _secureStorage.read(key: 'refresh_token');
+      if (refreshToken != null) {
+        final client = await GraphQLService.getClient();
+        const mutation = r'''
+          mutation($refresh_token: String!) {
+            auth_logout(refresh_token: $refresh_token) {
+              message
+            }
+          }
+        ''';
+
+        await client.mutate(
+          MutationOptions(
+            document: gql(mutation),
+            variables: {'refresh_token': refreshToken},
+          ),
+        );
+      }
+
+      // Clear all local data
+      await _secureStorage.deleteAll();
+      final prefs = await _prefs;
+      await prefs.clear();
+    } catch (e) {
+      print('Error during logout: $e');
+      // Even if the server request fails, we should still clear local data
+      await _secureStorage.deleteAll();
+      final prefs = await _prefs;
+      await prefs.clear();
+    }
   }
 }

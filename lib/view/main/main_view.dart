@@ -4,6 +4,7 @@ import 'package:lenat_mobile/view/home/home_view.dart';
 import 'package:lenat_mobile/view/market/market_view.dart';
 import 'package:lenat_mobile/view/media/media_view.dart';
 import 'package:lenat_mobile/view/profile/profile_screen.dart';
+import 'package:lenat_mobile/view/profile/profile_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'main_viewmodel.dart';
@@ -27,17 +28,29 @@ class MainView extends StatelessWidget {
     HugeIcons.strokeRoundedUserSquare,
   ];
 
-  final List<String> _labels = [
-    "ዋና ገፅ",
-    "ሚዲያ",
-    "ኮንሰልት",
-    "ገበያ",
-    "ፕሮፋይል",
-  ];
+  List<String> _getLabels(bool isAmharic) {
+    return isAmharic
+        ? [
+            "ዋና ገፅ",
+            "ሚዲያ",
+            "ኮንሰልት",
+            "ገበያ",
+            "ፕሮፋይል",
+          ]
+        : [
+            "Home",
+            "Media",
+            "Consult",
+            "Market",
+            "Profile",
+          ];
+  }
 
   @override
   Widget build(BuildContext context) {
     final vm = Provider.of<MainViewModel>(context);
+    final viewModel = Provider.of<ProfileViewModel>(context);
+    final labels = _getLabels(viewModel.isAmharic);
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
@@ -82,7 +95,7 @@ class MainView extends StatelessWidget {
                       if (isSelected) ...[
                         const SizedBox(width: 6),
                         Text(
-                          _labels[index],
+                          labels[index],
                           style: const TextStyle(
                             fontSize: 14,
                             fontFamily: 'NotoSansEthiopic',
