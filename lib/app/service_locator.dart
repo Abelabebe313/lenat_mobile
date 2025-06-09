@@ -8,6 +8,6 @@ final locator = GetIt.instance;
 void setupLocator() {
   locator.registerLazySingleton<GraphQLService>(() => GraphQLService());
   locator.registerLazySingleton<AuthService>(() => AuthService());
-  locator.registerLazySingleton<LocalStorageService>(() => LocalStorageService());
-  
+  locator
+      .registerLazySingleton<LocalStorageService>(() => LocalStorageService());
 }

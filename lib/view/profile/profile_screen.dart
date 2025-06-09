@@ -5,8 +5,22 @@ import 'package:provider/provider.dart';
 import 'package:lenat_mobile/view/profile/profile_viewmodel.dart';
 import 'package:lenat_mobile/view/auth/auth_viewmodel.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  @override
+  void initState() {
+    super.initState();
+    // Load user data when the screen initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ProfileViewModel>(context, listen: false).loadUserData();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +91,8 @@ class ProfilePage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  viewModel.isAmharic ? 'የተጠቃሚ ስም' : 'Username',
+                  viewModel.currentUser?.fullName ??
+                      (viewModel.isAmharic ? 'የተጠቃሚ ስም' : 'Username'),
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontFamily: 'NotoSansEthiopic',
@@ -97,7 +112,9 @@ class ProfilePage extends StatelessWidget {
               ),
             ),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushNamed(context, '/profile-edit');
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Primary,
                 shape: RoundedRectangleBorder(
@@ -251,6 +268,7 @@ class ProfilePage extends StatelessWidget {
             final shouldLogout = await showDialog<bool>(
               context: context,
               builder: (context) => AlertDialog(
+                backgroundColor: Colors.white,
                 title: Text(
                   viewModel.isAmharic ? 'ውጣ' : 'Logout',
                   style: const TextStyle(
@@ -387,6 +405,7 @@ class ProfilePage extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
         title: Text(
           viewModel.isAmharic ? 'ቋንቋ ምረጥ' : 'Select Language',
           style: const TextStyle(

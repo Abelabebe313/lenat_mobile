@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:lenat_mobile/view/profile/profile_viewmodel.dart';
+import 'package:provider/provider.dart';
+
 import 'package:lenat_mobile/core/colors.dart';
 import 'package:lenat_mobile/view/market/product_detail_page.dart';
 import 'package:lenat_mobile/view/market/widgets/market_item_widget.dart';
@@ -49,15 +52,17 @@ class _MarketViewState extends State<MarketView> {
 
   @override
   Widget build(BuildContext context) {
+    final profileViewModel = Provider.of<ProfileViewModel>(context);
+
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         backgroundColor: Colors.grey.shade50,
         centerTitle: true,
         elevation: 0,
-        title: const Text(
-          "ገበያ",
-          style: TextStyle(
+        title: Text(
+          profileViewModel.isAmharic ? "ገበያ" : "Market",
+          style: const TextStyle(
             fontFamily: 'NotoSansEthiopic',
             fontSize: 20,
             fontWeight: FontWeight.w700,
@@ -84,10 +89,12 @@ class _MarketViewState extends State<MarketView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 8),
-              const Text(
-                "Lorem ipsum dolor sit amet consectetur. Velit mauris etiam tortor adipiscing dis.",
+              Text(
+                profileViewModel.isAmharic
+                    ? "የተመረጡ እቃዎች የእናቶች እና የህፃናት ልብስ መጫወቻዎች እና ስጦታዎች የመጠባበቅ መስመር ነው።"
+                    : "Lorem ipsum dolor sit amet consectetur. Velit mauris etiam tortor adipiscing dis.",
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.black,
                   fontSize: 14,
                 ),
@@ -157,11 +164,13 @@ class _MarketViewState extends State<MarketView> {
                         color: Primary,
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text(
-                          "አዲስ የገቡ",
-                          style: TextStyle(
-                            fontSize: 16,
+                          profileViewModel.isAmharic
+                              ? "አዲስ የገቡ"
+                              : "New Arrivals",
+                          style: const TextStyle(
+                            fontSize: 12,
                             fontWeight: FontWeight.w500,
                             color: Colors.white,
                           ),
@@ -188,7 +197,9 @@ class _MarketViewState extends State<MarketView> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  "የነፍሰ ጡር ልብስ",
+                                  profileViewModel.isAmharic
+                                      ? "የነፍሰ ጡር ልብስ"
+                                      : 'Pregnancy cloths',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w400,
@@ -212,11 +223,13 @@ class _MarketViewState extends State<MarketView> {
                                 color: Primary,
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: const Center(
+                              child: Center(
                                 child: Text(
-                                  "አሁን ይግዙ",
+                                  profileViewModel.isAmharic
+                                      ? "አሁን ይግዙ"
+                                      : "Buy Now",
                                   style: TextStyle(
-                                    fontSize: 16,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.w500,
                                     color: Colors.white,
                                   ),
@@ -279,7 +292,9 @@ class _MarketViewState extends State<MarketView> {
               ),
               const SizedBox(height: 20),
               Text(
-                "የተመረጡ እቃዎች",
+                profileViewModel.isAmharic
+                    ? "የተመረጡ እቃዎች"
+                    : "Featured Products",
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,

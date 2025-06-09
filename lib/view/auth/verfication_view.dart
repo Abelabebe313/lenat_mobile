@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lenat_mobile/core/colors.dart';
 import 'package:lenat_mobile/view/auth/auth_viewmodel.dart';
+import 'package:lenat_mobile/view/profile/profile_viewmodel.dart';
 import 'package:pinput/pinput.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
@@ -69,6 +70,7 @@ class _VerificationViewState extends State<VerificationView> {
   Widget build(BuildContext context) {
     final email = ModalRoute.of(context)?.settings.arguments as String?;
     final viewModel = Provider.of<AuthViewModel>(context);
+    final profileViewModel = Provider.of<ProfileViewModel>(context);
 
     print('Verification view - Email received: $email'); // Debug print
 
@@ -121,22 +123,30 @@ class _VerificationViewState extends State<VerificationView> {
             Navigator.pop(context);
           },
         ),
-        title: const Text(
-          'ውጣ',
-          style: TextStyle(
+        title: Text(
+          profileViewModel.isAmharic ? 'ውጣ' : 'Back',
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w700,
             fontFamily: 'NotoSansEthiopic',
           ),
         ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              profileViewModel.toggleLanguage();
+            },
+            child: Text(profileViewModel.isAmharic ? "አማርኛ" : "English"),
+          ),
+        ],
       ),
       body: SafeArea(
         child: LayoutBuilder(builder: (context, constraints) {
           final screenWidth = constraints.maxWidth;
           final isTablet = screenWidth >= 600;
 
-          final horizontalPadding = isTablet ? 40.0 : 20.0;
-          final titleFontSize = isTablet ? 32.0 : 26.0;
+          final horizontalPadding = isTablet ? 40.0 : 16.0;
+          final titleFontSize = isTablet ? 32.0 : 20.0;
           final inputFontSize = isTablet ? 16.0 : 14.0;
           final buttonPadding = isTablet ? 16.0 : 12.0;
 
@@ -149,7 +159,9 @@ class _VerificationViewState extends State<VerificationView> {
                   const SizedBox(height: 30),
                   Center(
                     child: Text(
-                      "እባክዎ የማረጋገጫ \nኮድ ያስገቡ",
+                      profileViewModel.isAmharic
+                          ? "እባክዎ የማረጋገጫ \nኮድ ያስገቡ"
+                          : "Please enter the code sent to\n$email",
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: titleFontSize,
@@ -160,7 +172,9 @@ class _VerificationViewState extends State<VerificationView> {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    "OTP has been sent to:\n$email",
+                    profileViewModel.isAmharic
+                        ? "የማረጋገጫ ኮድ ወደ:\n$email ተሰጥቷል"
+                        : "OTP has been sent to:\n$email",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: inputFontSize,
@@ -260,7 +274,9 @@ class _VerificationViewState extends State<VerificationView> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "Didn't get Code?",
+                        profileViewModel.isAmharic
+                            ? "ኮድ አልደረሰዎትም?"
+                            : "Didn't get Code?",
                         style: TextStyle(
                           fontSize: inputFontSize,
                           fontWeight: FontWeight.w500,
@@ -291,7 +307,9 @@ class _VerificationViewState extends State<VerificationView> {
                               }
                             : null,
                         child: Text(
-                          "Resend Code",
+                          profileViewModel.isAmharic
+                              ? "ይድገሙ"
+                              : "Resend Code",
                           style: TextStyle(
                             fontSize: inputFontSize,
                             fontWeight: FontWeight.w700,

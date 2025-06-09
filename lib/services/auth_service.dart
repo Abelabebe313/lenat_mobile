@@ -133,38 +133,62 @@ class AuthService {
     String? fullName,
     String? dateOfBirth,
     String? bio,
+    String? relationship,
+    int? pregnancyPeriod,
   }) async {
     try {
-      final client = await GraphQLService.getClient();
-      const mutation = r'''
-        mutation($gender: String!, $profileImage: String, $fullName: String, $dateOfBirth: String, $bio: String) {
-          update_user_profile(
+      final client =
+          await GraphQLService.getClient(role: GraphQLService.roleMe);
+      final userDataStr = await _secureStorage.read(key: 'user_data');
+
+      if (userDataStr == null) {
+        throw Exception('User data not found');
+      }
+
+      final userData = jsonDecode(userDataStr) as Map<String, dynamic>;
+      final userId = userData['id'] as String;
+
+      // First mutation for profile update
+      const profileMutation = r'''
+        mutation($userId: uuid!, $gender: String!, $fullName: String!, $dateOfBirth: date!) {
+          update_profiles(where: {id: {_eq: $userId}}, _set: {
             gender: $gender,
-            profile_image: $profileImage,
             full_name: $fullName,
-            date_of_birth: $dateOfBirth,
-            bio: $bio
-          ) {
-            id
-            gender
-            profile_image
-            full_name
-            date_of_birth
-            bio
-            new_user
+            birth_date: $dateOfBirth
+          }) {
+            returning {
+              birth_date
+              full_name
+              gender
+              id
+            }
+          }
+        }
+      ''';
+
+      // Second mutation for patient profile update
+      const patientMutation = r'''
+        mutation($userId: uuid!, $relationship: enum_parent_relationship_enum, $pregnancyPeriod: Int) {
+          update_profile_patients(where: {id: {_eq: $userId}}, _set: {
+            relationship: $relationship,
+            pregnancy_period: $pregnancyPeriod
+          }) {
+            returning {
+              pregnancy_period
+              relationship
+            }
           }
         }
       ''';
 
       final result = await client.mutate(
         MutationOptions(
-          document: gql(mutation),
+          document: gql(profileMutation),
           variables: {
+            'userId': userId,
             'gender': gender,
-            'profileImage': profileImage,
             'fullName': fullName,
             'dateOfBirth': dateOfBirth,
-            'bio': bio,
           },
         ),
       );
@@ -175,18 +199,50 @@ class AuthService {
         throw Exception(error);
       }
 
-      final data = result.data?['update_user_profile'];
-      if (data != null) {
+      final profileData = result.data?['update_profiles']?['returning']?[0];
+
+      if (profileData != null) {
         // Update local user data
         final currentUser = await getCurrentUser();
         if (currentUser != null) {
           final updatedUser = currentUser.copyWith(
             gender: gender,
-            profileImage: profileImage,
             fullName: fullName,
             dateOfBirth: dateOfBirth,
-            bio: bio,
             isNewUser: false,
+          );
+          await _secureStorage.write(
+              key: 'user_data', value: jsonEncode(updatedUser.toJson()));
+        }
+      }
+
+      final patientResult = await client.mutate(
+        MutationOptions(
+          document: gql(patientMutation),
+          variables: {
+            'userId': userId,
+            'relationship': relationship,
+            'pregnancyPeriod': pregnancyPeriod,
+          },
+        ),
+      );
+
+      if (patientResult.hasException) {
+        final error = patientResult.exception?.graphqlErrors.first.message ??
+            'Failed to update patient profile';
+        throw Exception(error);
+      }
+
+      final patientData =
+          patientResult.data?['update_profile_patients']?['returning']?[0];
+
+      if (patientData != null) {
+        // Update local patient data
+        final currentUser = await getCurrentUser();
+        if (currentUser != null) {
+          final updatedUser = currentUser.copyWith(
+            relationship: relationship,
+            pregnancyPeriod: pregnancyPeriod,
           );
           await _secureStorage.write(
               key: 'user_data', value: jsonEncode(updatedUser.toJson()));

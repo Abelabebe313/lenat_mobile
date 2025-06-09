@@ -10,6 +10,8 @@ class UserModel {
   final String? fullName;
   final String? dateOfBirth;
   final String? bio;
+  final String? relationship;
+  final int? pregnancyPeriod;
 
   UserModel({
     required this.id,
@@ -23,6 +25,8 @@ class UserModel {
     this.fullName,
     this.dateOfBirth,
     this.bio,
+    this.relationship,
+    this.pregnancyPeriod,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -33,6 +37,8 @@ class UserModel {
       role: json['role'] as String,
       roles: List<String>.from(json['roles'] as List),
       isNewUser: json['new_user'] as bool,
+      relationship: json['relationship'] as String?,
+      pregnancyPeriod: json['pregnancy_period'] as int?,
     );
   }
 
@@ -49,6 +55,8 @@ class UserModel {
       'full_name': fullName,
       'date_of_birth': dateOfBirth,
       'bio': bio,
+      'relationship': relationship,
+      'pregnancy_period': pregnancyPeriod,
     };
   }
 
@@ -64,6 +72,8 @@ class UserModel {
     String? fullName,
     String? dateOfBirth,
     String? bio,
+    String? relationship,
+    int? pregnancyPeriod,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -77,6 +87,8 @@ class UserModel {
       fullName: fullName ?? this.fullName,
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       bio: bio ?? this.bio,
+      relationship: relationship ?? this.relationship,
+      pregnancyPeriod: pregnancyPeriod ?? this.pregnancyPeriod,
     );
   }
 }

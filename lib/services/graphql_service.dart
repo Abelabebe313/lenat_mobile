@@ -8,21 +8,41 @@ class GraphQLService {
   final _secureStorage = const FlutterSecureStorage();
   final _authService = locator<AuthService>();
 
-  static Future<GraphQLClient> getClient() async {
+  // Define possible roles
+  static const String roleMe = 'me';
+  static const String roleUser = 'user';
+  static const String roleAdmin = 'user_me';
+
+  // Define authentication states
+  static const String authStateUnauthenticated = 'unauthenticated';
+  static const String authStateAuthenticated = 'authenticated';
+
+  static Future<GraphQLClient> getClient({String? role}) async {
     final service = GraphQLService();
-    return await service._getClient();
+    return await service._getClient(role: role);
   }
 
-  Future<GraphQLClient> _getClient() async {
+  Future<GraphQLClient> _getClient({String? role}) async {
     final token = await _secureStorage.read(key: 'access_token');
+
+    // If no token is present, use unauthenticated client
+    if (token == null) {
+      return _getUnauthenticatedClient();
+    }
+
+    final Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'x-hasura-admin-secret': '123',
+    };
+
+    // Add role header if specified (this will override the default role from JWT)
+    if (role != null) {
+      headers['x-hasura-role'] = role;
+    }
 
     final HttpLink httpLink = HttpLink(
       _baseUrl,
-      defaultHeaders: {
-        'Content-Type': 'application/json',
-        'x-hasura-admin-secret': '123',
-        if (token != null) 'Authorization': 'Bearer $token',
-      },
+      defaultHeaders: headers,
     );
 
     final AuthLink authLink = AuthLink(
@@ -41,12 +61,19 @@ class GraphQLService {
   }
 
   static Future<GraphQLClient> getUnauthenticatedClient() async {
+    final service = GraphQLService();
+    return service._getUnauthenticatedClient();
+  }
+
+  Future<GraphQLClient> _getUnauthenticatedClient() async {
+    final Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'x-hasura-admin-secret': '123',
+    };
+
     final HttpLink httpLink = HttpLink(
       _baseUrl,
-      defaultHeaders: {
-        'Content-Type': 'application/json',
-        'x-hasura-admin-secret': '123',
-      },
+      defaultHeaders: headers,
     );
 
     return GraphQLClient(

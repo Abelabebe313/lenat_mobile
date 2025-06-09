@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lenat_mobile/core/colors.dart';
 import 'package:lenat_mobile/view/auth/auth_viewmodel.dart';
 import 'package:lenat_mobile/view/auth/verfication_view.dart';
+import 'package:lenat_mobile/view/profile/profile_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -27,8 +28,19 @@ class _LoginViewState extends State<LoginView> {
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<AuthViewModel>(context);
+    final profileViewModel = Provider.of<ProfileViewModel>(context);
 
     return Scaffold(
+      appBar: AppBar(
+        actions: [
+          TextButton(
+            onPressed: () {
+              profileViewModel.toggleLanguage();
+            },
+            child: Text(profileViewModel.isAmharic ? "አማርኛ" : "English"),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -77,7 +89,7 @@ class _LoginViewState extends State<LoginView> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      "ግባ",
+                      profileViewModel.isAmharic ? "ግባ" : "Login",
                       style: TextStyle(
                         fontSize: titleFontSize,
                         fontWeight: FontWeight.w700,
@@ -92,7 +104,10 @@ class _LoginViewState extends State<LoginView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text("ኢሜይል", style: titleStyle),
+                          Text(
+                            profileViewModel.isAmharic ? "ኢሜይል" : "Email",
+                            style: titleStyle,
+                          ),
                           const SizedBox(height: 6),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -185,7 +200,9 @@ class _LoginViewState extends State<LoginView> {
                       child: _loading
                           ? const CircularProgressIndicator(color: Colors.white)
                           : Text(
-                              "ወደ ውስጥ ግባ",
+                              profileViewModel.isAmharic
+                                  ? "ወደ ውስጥ ግባ"
+                                  : "Login",
                               style: TextStyle(
                                 fontSize: inputFontSize,
                                 fontWeight: FontWeight.w500,
@@ -200,7 +217,9 @@ class _LoginViewState extends State<LoginView> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          "መለያ የለዎትም?",
+                          profileViewModel.isAmharic
+                              ? "መለያ የለዎትም?"
+                              : "Don't have an account?",
                           style: TextStyle(
                             fontSize: inputFontSize,
                             fontWeight: FontWeight.w500,
@@ -210,7 +229,7 @@ class _LoginViewState extends State<LoginView> {
                         TextButton(
                           onPressed: () {},
                           child: Text(
-                            "ይመዝገቡ",
+                            profileViewModel.isAmharic ? "ይመዝገቡ" : "Sign up",
                             style: TextStyle(
                               fontSize: inputFontSize,
                               fontWeight: FontWeight.w700,

@@ -9,6 +9,7 @@ import 'package:lenat_mobile/view/content/widget/content_feed_item.dart';
 import 'package:lenat_mobile/view/notification/notification_view.dart';
 import 'package:lenat_mobile/view/onboarding/onboarding_view.dart';
 import 'package:lenat_mobile/view/premium/premium_view.dart';
+import 'package:lenat_mobile/view/profile_edit/profile_edit_view.dart';
 import 'package:lenat_mobile/view/profile_setup/gender_selector_page.dart';
 import 'package:lenat_mobile/view/profile_setup/profile_setup_view.dart';
 import 'package:lenat_mobile/view/splash/splash_view.dart';
@@ -38,6 +39,9 @@ class AppRouter {
 
       case '/profile-setup':
         return MaterialPageRoute(builder: (_) => const ProfileSetupView());
+      
+      case '/profile-edit':
+        return MaterialPageRoute(builder: (_) => const ProfileEditView());
 
       case '/notifications':
         return MaterialPageRoute(builder: (_) => const NotificationView());

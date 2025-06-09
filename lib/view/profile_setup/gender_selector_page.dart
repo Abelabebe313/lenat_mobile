@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lenat_mobile/core/colors.dart';
 import 'package:lenat_mobile/view/auth/auth_viewmodel.dart';
+import 'package:lenat_mobile/view/profile/profile_viewmodel.dart';
+import 'package:lenat_mobile/view/profile_setup/profile_setup_viewmodel.dart';
 import 'package:provider/provider.dart';
 
 class GenderSelectionView extends StatefulWidget {
@@ -17,12 +19,22 @@ class _GenderSelectionViewState extends State<GenderSelectionView> {
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<AuthViewModel>(context);
+    final profileSetUpViewModel = Provider.of<ProfileSetupViewModel>(context);
+    final profileViewModel = Provider.of<ProfileViewModel>(context);
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text(
-          "ወደ ኋላ ይመለሱ",
+        actions: [
+          TextButton(
+            onPressed: () {
+              profileViewModel.toggleLanguage();
+            },
+            child: Text(profileViewModel.isAmharic ? "አማርኛ" : "English"),
+          ),
+        ],
+        title: Text(
+          profileViewModel.isAmharic ? "ወደ ኋላ ይመለሱ" : "go back",
           style: TextStyle(
             fontFamily: 'NotoSansEthiopic',
             fontSize: 16,
@@ -40,8 +52,8 @@ class _GenderSelectionViewState extends State<GenderSelectionView> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 12),
-            const Text(
-              "Choose Gender",
+            Text(
+              profileViewModel.isAmharic ? "ፆታ ምረጥ" : "Choose Gender",
               style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.bold,
@@ -67,11 +79,13 @@ class _GenderSelectionViewState extends State<GenderSelectionView> {
                   label: "Female",
                   value: "female",
                   imagePath: "assets/images/female.png",
+                  profileSetUpViewModel: profileSetUpViewModel,
                 ),
                 genderCard(
                   label: "Male",
                   value: "male",
                   imagePath: "assets/images/male.png",
+                  profileSetUpViewModel: profileSetUpViewModel,
                 ),
               ],
             ),
@@ -85,8 +99,7 @@ class _GenderSelectionViewState extends State<GenderSelectionView> {
                   : () async {
                       setState(() => _loading = true);
                       try {
-                        Navigator.pushReplacementNamed(
-                            context, '/profile-setup');
+                        Navigator.pushNamed(context, '/profile-setup');
                         // await viewModel.updateUserProfile(
                         //   gender: selectedGender,
                         // );
@@ -125,7 +138,7 @@ class _GenderSelectionViewState extends State<GenderSelectionView> {
                       ),
                     )
                   : Text(
-                      "ጉዞዎን ይጀምሩ",
+                      profileViewModel.isAmharic ? "ጉዞዎን ይጀምሩ" : "Continue",
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -144,12 +157,14 @@ class _GenderSelectionViewState extends State<GenderSelectionView> {
     required String label,
     required String value,
     required String imagePath,
+    required ProfileSetupViewModel profileSetUpViewModel,
   }) {
     final bool isSelected = selectedGender == value;
     return GestureDetector(
       onTap: () {
         setState(() {
           selectedGender = value;
+          profileSetUpViewModel.updateIndex(value);
         });
       },
       child: Container(
