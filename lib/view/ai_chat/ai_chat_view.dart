@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lenat_mobile/core/colors.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class AIChatView extends StatefulWidget {
   const AIChatView({super.key});
@@ -9,41 +11,72 @@ class AIChatView extends StatefulWidget {
 }
 
 class _AIChatViewState extends State<AIChatView> {
-  TextEditingController userMessageController = TextEditingController();
+  List chatHistory = [];
+  late ChatSession chat;
   ScrollController scrollController = ScrollController();
+  TextEditingController userMessageController = TextEditingController();
 
-  List sampleChat = [
-    {
-      "from": "User",
-      "content": "Hello!",
-    },
-    {
-      "from": "AI",
-      "content": "Hello there",
-    },
-    {
-      "from": "User",
-      "content":
-          "እንኳን ወደ እኛ በደህና መጡ! የደንበኞቻችን የድጋፍ ቻትቦት ይገኛል! እንዴት ልንረዳት እንችላለን? ከታች አማራጭ ይምረጡ። 😁",
-    },
-    {
-      "from": "AI",
-      "content":
-          "ይቅርታ! ይህ ጽሁፍ የተሳሳተ ነው። እባኮትን እንደ ገና ይጻፉ። ይቅርታ! ይህ ጽሁፍ የተሳሳተ ነው። እባኮትን እንደ ገና ይጻፉ። ይቅርታ! ይህ ጽሁፍ የተሳሳተ ነው። እባኮትን እንደ ገና ይጻፉ። ይቅርታ! ይህ ጽሁፍ የተሳሳተ ነው። እባኮትን እንደ ገና ይጻፉ። ",
-    },
-    {
-      "from": "User",
-      "content": "Hello!",
-    },
-    {
-      "from": "AI",
-      "content": "Hello there",
-    },
-  ];
+  // Model Init
+  final model = GenerativeModel(
+    model: 'gemini-2.0-flash',
+    apiKey: 'AIzaSyBcPZO3nsbkGhA2fHJpn8ZcxHu9s4tAmsw',
+    generationConfig: GenerationConfig(
+      temperature: 1,
+      topK: 40,
+      topP: 0.95,
+      maxOutputTokens: 8192,
+      responseMimeType: 'text/plain',
+    ),
+    systemInstruction: Content(
+      'ai',
+      [TextPart('Always respond in Amharic')],
+    ),
+  );
+
+  void sendTextToAI() async {
+    // Clean User Input
+    String userInput = userMessageController.text.trim();
+    userMessageController.clear();
+
+    // Add to Chat History
+    addToChatHistory("User", userInput);
+
+    // Response
+    final content = Content.text(userInput);
+    var response = await chat.sendMessage(content);
+    String aiResponse = response.text!;
+
+    // Add to Chat History
+    addToChatHistory("AI", aiResponse.toString().trim());
+  }
+
+  // Add to Chat History
+  void addToChatHistory(String from, String content) {
+    if (from == "AI") {
+      chatHistory.removeLast();
+    }
+    chatHistory.add({
+      "from": from,
+      "content": content,
+    });
+    if (from == "User") {
+      chatHistory.add({
+        "from": 'System',
+        "content": 'Loading...',
+      });
+    }
+    setState(() {});
+  }
 
   void clearChat() async {
-    sampleChat.clear();
+    chatHistory.clear();
     setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    chat = model.startChat(history: []);
   }
 
   @override
@@ -69,7 +102,7 @@ class _AIChatViewState extends State<AIChatView> {
           const SizedBox(height: 10.0),
 
           Expanded(
-            child: sampleChat.isEmpty
+            child: chatHistory.isEmpty
                 ? ListView(
                     padding: const EdgeInsets.only(top: 100.0),
                     children: [
@@ -98,10 +131,11 @@ class _AIChatViewState extends State<AIChatView> {
                   )
                 : ListView.builder(
                     controller: scrollController,
-                    itemCount: sampleChat.length,
+                    itemCount: chatHistory.length,
                     itemBuilder: (context, index) {
-                      final item = sampleChat[index];
+                      final item = chatHistory[index];
                       final isFromUser = item['from'] == 'User';
+                      final isSystem = item['from'] == 'System';
                       return Row(
                         mainAxisAlignment: isFromUser
                             ? MainAxisAlignment.end
@@ -126,15 +160,22 @@ class _AIChatViewState extends State<AIChatView> {
                                   isFromUser ? Primary : Primary.withAlpha(50),
                               borderRadius: BorderRadius.circular(10.0),
                             ),
-                            child: Text(
-                              item['content'],
-                              maxLines: 5,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: isFromUser ? Colors.white : Colors.black,
-                                fontSize: 16.0,
-                              ),
-                            ),
+                            child: isSystem
+                                ? LoadingAnimationWidget.staggeredDotsWave(
+                                    color: Colors.black,
+                                    size: 18.0,
+                                  )
+                                : Text(
+                                    item['content'],
+                                    maxLines: 5,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: isFromUser
+                                          ? Colors.white
+                                          : Colors.black,
+                                      fontSize: 16.0,
+                                    ),
+                                  ),
                           ),
                         ],
                       );
@@ -193,7 +234,7 @@ class _AIChatViewState extends State<AIChatView> {
                     ),
                     child: IconButton(
                       onPressed: () {
-                        // apiKey == "" ? () {} : chatWithAI();
+                        sendTextToAI();
                       },
                       icon: Icon(
                         Icons.send_outlined,
