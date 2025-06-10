@@ -145,8 +145,9 @@ class AuthService {
         throw Exception('User data not found');
       }
 
-      final userData = jsonDecode(userDataStr) as Map<String, dynamic>;
-      final userId = userData['id'] as String;
+      // Get existing user data
+      final existingUserData = jsonDecode(userDataStr) as Map<String, dynamic>;
+      final userId = existingUserData['id'] as String;
 
       // First mutation for profile update
       const profileMutation = r'''
@@ -202,18 +203,18 @@ class AuthService {
       final profileData = result.data?['update_profiles']?['returning']?[0];
 
       if (profileData != null) {
-        // Update local user data
-        final currentUser = await getCurrentUser();
-        if (currentUser != null) {
-          final updatedUser = currentUser.copyWith(
-            gender: gender,
-            fullName: fullName,
-            dateOfBirth: dateOfBirth,
-            isNewUser: false,
-          );
-          await _secureStorage.write(
-              key: 'user_data', value: jsonEncode(updatedUser.toJson()));
-        }
+        // Merge profile data with existing user data
+        final updatedUserData = {
+          ...existingUserData,
+          'gender': gender,
+          'full_name': fullName,
+          'date_of_birth': dateOfBirth,
+          'new_user': false,
+        };
+
+        // Save merged data
+        await _secureStorage.write(
+            key: 'user_data', value: jsonEncode(updatedUserData));
       }
 
       final patientResult = await client.mutate(
@@ -237,15 +238,22 @@ class AuthService {
           patientResult.data?['update_profile_patients']?['returning']?[0];
 
       if (patientData != null) {
-        // Update local patient data
-        final currentUser = await getCurrentUser();
-        if (currentUser != null) {
-          final updatedUser = currentUser.copyWith(
-            relationship: relationship,
-            pregnancyPeriod: pregnancyPeriod,
-          );
+        // Get the latest user data after profile update
+        final latestUserDataStr = await _secureStorage.read(key: 'user_data');
+        if (latestUserDataStr != null) {
+          final latestUserData =
+              jsonDecode(latestUserDataStr) as Map<String, dynamic>;
+
+          // Merge patient data with existing user data
+          final finalUserData = {
+            ...latestUserData,
+            'relationship': relationship,
+            'pregnancy_period': pregnancyPeriod,
+          };
+
+          // Save final merged data
           await _secureStorage.write(
-              key: 'user_data', value: jsonEncode(updatedUser.toJson()));
+              key: 'user_data', value: jsonEncode(finalUserData));
         }
       }
     } catch (e) {

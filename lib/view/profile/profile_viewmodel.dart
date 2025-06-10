@@ -2,18 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:lenat_mobile/app/service_locator.dart';
 import 'package:lenat_mobile/models/user_model.dart';
 import 'package:lenat_mobile/services/auth_service.dart';
+import 'package:lenat_mobile/services/minio_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
 
 class ProfileViewModel extends ChangeNotifier {
   final _authService = locator<AuthService>();
+  final _minioService = locator<MinioService>();
   static const String _languageKey = 'app_language';
   bool _isAmharic = true;
   UserModel? _currentUser;
   bool _isLoading = false;
+  bool _isUploading = false;
+  String? _uploadedImageUrl;
 
   bool get isAmharic => _isAmharic;
   UserModel? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
+  bool get isUploading => _isUploading;
+  String? get uploadedImageUrl => _uploadedImageUrl;
 
   ProfileViewModel() {
     _loadLanguagePreference();
@@ -31,11 +38,32 @@ class ProfileViewModel extends ChangeNotifier {
       notifyListeners();
 
       _currentUser = await _authService.getCurrentUser();
+      print("current user: ${_currentUser?.fullName}");
 
       _isLoading = false;
       notifyListeners();
     } catch (e) {
       _isLoading = false;
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  Future<void> uploadProfileImage(File imageFile) async {
+    try {
+      _isUploading = true;
+      notifyListeners();
+
+      // Upload the image to MinIO
+      _uploadedImageUrl = await _minioService.uploadFile(imageFile);
+
+      // TODO: Update user profile with new image URL
+      // await _authService.updateProfileImage(_uploadedImageUrl!);
+
+      _isUploading = false;
+      notifyListeners();
+    } catch (e) {
+      _isUploading = false;
       notifyListeners();
       rethrow;
     }

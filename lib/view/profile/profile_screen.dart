@@ -4,6 +4,8 @@ import 'package:lenat_mobile/core/colors.dart';
 import 'package:provider/provider.dart';
 import 'package:lenat_mobile/view/profile/profile_viewmodel.dart';
 import 'package:lenat_mobile/view/auth/auth_viewmodel.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -13,11 +15,112 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  File? _selectedImage;
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? image = await _picker.pickImage(source: source);
+      if (image != null) {
+        setState(() {
+          _selectedImage = File(image.path);
+        });
+        print('Selected image path: ${image.path}');
+
+        // Upload the image
+        final viewModel = Provider.of<ProfileViewModel>(context, listen: false);
+        await viewModel.uploadProfileImage(_selectedImage!);
+
+        // Show success message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                viewModel.isAmharic
+                    ? 'ምስሉ በተሳክቷል ተስተካክሏል'
+                    : 'Image uploaded successfully',
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('Error picking image: $e');
+      if (mounted) {
+        final viewModel = Provider.of<ProfileViewModel>(context, listen: false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              viewModel.isAmharic
+                  ? 'ምስሉን ማስተካከል አልተሳካም'
+                  : 'Failed to upload image',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showImagePickerBottomSheet() {
+    final viewModel = Provider.of<ProfileViewModel>(context, listen: false);
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                viewModel.isAmharic ? 'ምስል ምረጥ' : 'Select Image',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'NotoSansEthiopic',
+                ),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: Text(
+                  viewModel.isAmharic ? 'ካሜራ' : 'Camera',
+                  style: const TextStyle(fontFamily: 'NotoSansEthiopic'),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: Text(
+                  viewModel.isAmharic ? 'ጋሌሪ' : 'Gallery',
+                  style: const TextStyle(fontFamily: 'NotoSansEthiopic'),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     // Load user data when the screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      print("load user data");
       Provider.of<ProfileViewModel>(context, listen: false).loadUserData();
     });
   }
@@ -72,17 +175,64 @@ class _ProfilePageState extends State<ProfilePage> {
     return Row(
       children: [
         const SizedBox(width: 32),
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: Colors.grey.shade300,
-            borderRadius: BorderRadius.circular(12),
-            image: const DecorationImage(
-              image: AssetImage('assets/images/login-image.png'),
-              fit: BoxFit.cover,
+        Stack(
+          children: [
+            GestureDetector(
+              onTap: _showImagePickerBottomSheet,
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(12),
+                  image: _selectedImage != null
+                      ? DecorationImage(
+                          image: FileImage(_selectedImage!),
+                          fit: BoxFit.cover,
+                        )
+                      : viewModel.uploadedImageUrl != null
+                          ? DecorationImage(
+                              image: NetworkImage(viewModel.uploadedImageUrl!),
+                              fit: BoxFit.cover,
+                            )
+                          : const DecorationImage(
+                              image:
+                                  AssetImage('assets/images/login-image.png'),
+                              fit: BoxFit.cover,
+                            ),
+                ),
+                child: viewModel.isUploading
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                        ),
+                      )
+                    : null,
+              ),
             ),
-          ),
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: GestureDetector(
+                onTap: _showImagePickerBottomSheet,
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: Colors.blue,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.add_a_photo_outlined,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(width: 16),
         Column(
@@ -91,8 +241,7 @@ class _ProfilePageState extends State<ProfilePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  viewModel.currentUser?.fullName ??
-                      (viewModel.isAmharic ? 'የተጠቃሚ ስም' : 'Username'),
+                  viewModel.currentUser?.fullName ?? 'Username',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontFamily: 'NotoSansEthiopic',

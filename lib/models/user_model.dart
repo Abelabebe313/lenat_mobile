@@ -3,7 +3,6 @@ class UserModel {
   final String email;
   final String? phoneNumber;
   final String role;
-  final List<String> roles;
   final bool isNewUser;
   final String? gender;
   final String? profileImage;
@@ -18,7 +17,6 @@ class UserModel {
     required this.email,
     this.phoneNumber,
     required this.role,
-    required this.roles,
     required this.isNewUser,
     this.gender,
     this.profileImage,
@@ -35,8 +33,12 @@ class UserModel {
       email: json['email'] as String,
       phoneNumber: json['phone_number'] as String?,
       role: json['role'] as String,
-      roles: List<String>.from(json['roles'] as List),
       isNewUser: json['new_user'] as bool,
+      gender: json['gender'] as String?,
+      profileImage: json['profile_image'] as String?,
+      fullName: json['full_name'] as String?,
+      dateOfBirth: json['birth_date'] as String?,
+      bio: json['bio'] as String?,
       relationship: json['relationship'] as String?,
       pregnancyPeriod: json['pregnancy_period'] as int?,
     );
@@ -48,7 +50,6 @@ class UserModel {
       'email': email,
       'phone_number': phoneNumber,
       'role': role,
-      'roles': roles,
       'new_user': isNewUser,
       'gender': gender,
       'profile_image': profileImage,
@@ -65,7 +66,6 @@ class UserModel {
     String? email,
     String? phoneNumber,
     String? role,
-    List<String>? roles,
     bool? isNewUser,
     String? gender,
     String? profileImage,
@@ -80,7 +80,6 @@ class UserModel {
       email: email ?? this.email,
       phoneNumber: phoneNumber ?? this.phoneNumber,
       role: role ?? this.role,
-      roles: roles ?? this.roles,
       isNewUser: isNewUser ?? this.isNewUser,
       gender: gender ?? this.gender,
       profileImage: profileImage ?? this.profileImage,

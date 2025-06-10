@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:lenat_mobile/services/auth_service.dart';
 import 'package:lenat_mobile/services/graphql_service.dart';
 import 'package:lenat_mobile/services/local_storage.dart';
+import 'package:lenat_mobile/services/minio_service.dart';
 
 final locator = GetIt.instance;
 
@@ -10,4 +11,11 @@ void setupLocator() {
   locator.registerLazySingleton<AuthService>(() => AuthService());
   locator
       .registerLazySingleton<LocalStorageService>(() => LocalStorageService());
+  locator.registerLazySingleton(() => MinioService(
+        endpoint: '92.205.167.80:9001/',
+        accessKey: 'lenat',
+        secretKey: 'lenat123456789',
+        bucketName: 'users',
+        // useSSL: false,
+      ));
 }
