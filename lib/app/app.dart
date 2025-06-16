@@ -3,6 +3,7 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:lenat_mobile/core/colors.dart';
 import 'package:lenat_mobile/core/router.dart';
 import 'package:lenat_mobile/view/auth/auth_viewmodel.dart';
+import 'package:lenat_mobile/view/content/content_feed_viewmodel.dart';
 import 'package:lenat_mobile/view/profile_edit/profile_edit_viewmodel.dart';
 import 'package:lenat_mobile/view/profile_setup/profile_setup_viewmodel.dart';
 import 'package:provider/provider.dart';
@@ -23,6 +24,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ProfileViewModel()),
         ChangeNotifierProvider(create: (_) => ProfileSetupViewModel()),
         ChangeNotifierProvider(create: (_) => ProfileEditViewModel()),
+        ChangeNotifierProvider(create: (_) => ContentFeedViewModel()),
       ],
       child: GraphQLProvider(
         client: ValueNotifier(

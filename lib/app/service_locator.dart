@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:lenat_mobile/services/auth_service.dart';
+import 'package:lenat_mobile/services/feed_post_service.dart';
 import 'package:lenat_mobile/services/graphql_service.dart';
 import 'package:lenat_mobile/services/local_storage.dart';
 import 'package:lenat_mobile/services/minio_service.dart';
@@ -18,4 +19,5 @@ void setupLocator() {
         bucketName: 'users',
         // useSSL: false,
       ));
+  locator.registerLazySingleton<FeedPostService>(() => FeedPostService());
 }

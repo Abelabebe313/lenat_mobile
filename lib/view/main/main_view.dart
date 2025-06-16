@@ -32,14 +32,14 @@ class MainView extends StatelessWidget {
     return isAmharic
         ? [
             "ዋና ገፅ",
-            "ሚዲያ",
+            "ኮንቴንት",
             "ኮንሰልት",
             "ገበያ",
             "ፕሮፋይል",
           ]
         : [
             "Home",
-            "Media",
+            "Content",
             "Consult",
             "Market",
             "Profile",

@@ -2,10 +2,15 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:minio/minio.dart';
 import 'package:path/path.dart' as path;
+import 'package:http/http.dart' as http;
+import 'package:lenat_mobile/services/auth_service.dart';
+import 'package:lenat_mobile/app/service_locator.dart';
+import 'package:mime/mime.dart';
 
 class MinioService {
   late final Minio _minio;
   final String _bucketName;
+  final _authService = locator<AuthService>();
 
   MinioService({
     required String endpoint,
@@ -48,8 +53,17 @@ class MinioService {
 
   Future<String> uploadFile(File file) async {
     try {
+      // Get current user
+      final currentUser = await _authService.getCurrentUser();
+      if (currentUser == null || currentUser.id == null) {
+        throw Exception('User not found');
+      }
+
       final fileName =
-          'profile_images/${DateTime.now().millisecondsSinceEpoch}${path.extension(file.path)}';
+          '${currentUser.id}/${DateTime.now().millisecondsSinceEpoch}${path.extension(file.path)}';
+
+      // Detect MIME type
+      final mimeType = lookupMimeType(file.path) ?? 'application/octet-stream';
 
       // Create a stream from the file and convert to Uint8List
       final fileStream =
@@ -63,7 +77,7 @@ class MinioService {
         fileStream,
         size: fileSize,
         metadata: {
-          'Content-Type': 'image/${path.extension(file.path).substring(1)}',
+          'Content-Type': mimeType,
         },
         onProgress: (progress) {
           print(

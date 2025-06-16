@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:lenat_mobile/view/content/widget/content_feed_item.dart';
+import 'package:lenat_mobile/view/content/content_feed_viewmodel.dart';
 
 class ContentFeedView extends StatefulWidget {
   const ContentFeedView({super.key});
@@ -9,67 +11,142 @@ class ContentFeedView extends StatefulWidget {
 }
 
 class _ContentFeedViewState extends State<ContentFeedView> {
+  final ScrollController _scrollController = ScrollController();
+  bool _isScrolling = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_scrollListener);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ContentFeedViewModel>().loadInitialPosts();
+    });
+  }
+
+  void _scrollListener() {
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200 &&
+        !_isScrolling &&
+        context.read<ContentFeedViewModel>().hasMorePosts) {
+      _isScrolling = true;
+      context.read<ContentFeedViewModel>().loadMorePosts().then((_) {
+        _isScrolling = false; // Reset after loading
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            backgroundColor: Colors.white,
-            floating: false,
-            pinned: true,
-            expandedHeight: 20,
-            elevation: 0,
-            leading: IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-            ),
-            title: const Text(
-              "ወደ ኋላ ይመለሱ",
-              style: TextStyle(
-                fontFamily: 'NotoSansEthiopic',
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: Colors.black,
-              ),
-            ),
-          ),
-
-          /// Section Title — “ሚድያ”
-          SliverToBoxAdapter(
-            child: Container(
-              alignment: Alignment.center,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: const Text(
-                "ሚድያ",
-                style: TextStyle(
-                  fontFamily: 'NotoSansEthiopic',
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black,
+      body: Consumer<ContentFeedViewModel>(
+        builder: (context, viewModel, child) {
+          return RefreshIndicator(
+            onRefresh: viewModel.refreshPosts,
+            child: CustomScrollView(
+              controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverAppBar(
+                  backgroundColor: Colors.white,
+                  floating: false,
+                  pinned: true,
+                  expandedHeight: 20,
+                  elevation: 0,
+                  leading: IconButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+                  ),
+                  title: const Text(
+                    "ወደ ኋላ ይመለሱ",
+                    style: TextStyle(
+                      fontFamily: 'NotoSansEthiopic',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          ),
 
-          /// Content Feed List
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                return const ContentFeedItem(
-                  imageUrl:
-                      "https://images.unsplash.com/photo-1538678867871-8a43e7487746?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-                  description:
-                      "A new life begins! In the first month, your baby is settling into the womb, starting an incredible journey of growth.",
-                );
-              },
-              childCount: 10,
+                
+
+                if (viewModel.isLoading && viewModel.posts.isEmpty)
+                  const SliverFillRemaining(
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  )
+                else if (viewModel.hasError && viewModel.posts.isEmpty)
+                  SliverFillRemaining(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Error: ${viewModel.errorMessage}',
+                            style: const TextStyle(color: Colors.red),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: viewModel.retryLoading,
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        if (index >= viewModel.posts.length) {
+                          if (viewModel.isLoading) {
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(16.0),
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+                          }
+                          if (!viewModel.hasMorePosts) {
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(16.0),
+                                child: Text(
+                                  'No more posts to show',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+                          return null;
+                        }
+
+                        final post = viewModel.posts[index];
+                        return ContentFeedItem(
+                          imageUrl: post.media.url,
+                          description: post.description ?? '',
+                          blurHash: post.media.blurHash,
+                        );
+                      },
+                    ),
+                  ),
+              ],
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

@@ -48,36 +48,15 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
   }
 
   final List<String> options = [
-    "1ኛ ሳምንት",
-    "2ኛ ሳምንት",
-    "3ኛ ሳምንት",
-    "4ኛ ሳምንት",
-    "5ኛ ሳምንት",
-    "6ኛ ሳምንት",
-    "7ኛ ሳምንት",
-    "8ኛ ሳምንት",
-    "9ኛ ሳምንት",
-    "10ኛ ሳምንት",
-    "11ኛ ሳምንት",
-    "12ኛ ሳምንት",
-    "13ኛ ሳምንት",
-    "14ኛ ሳምንት",
-    "15ኛ ሳምንት",
-    "16ኛ ሳምንት",
-    "17ኛ ሳምንት",
-    "18ኛ ሳምንት",
-    "19ኛ ሳምንት",
-    "20ኛ ሳምንት",
-    "21ኛ ሳምንት",
-    "22ኛ ሳምንት",
-    "23ኛ ሳምንት",
-    "24ኛ ሳምንት",
-    "25ኛ ሳምንት",
-    "26ኛ ሳምንት",
-    "27ኛ ሳምንት",
-    "28ኛ ሳምንት",
-    "29ኛ ሳምንት",
-    "30ኛ ሳምንት"
+    "1ኛ ወር",
+    "2ኛ ወር",
+    "3ኛ ወር",
+    "4ኛ ወር",
+    "5ኛ ወር",
+    "6ኛ ወር",
+    "7ኛ ወር",
+    "8ኛ ወር",
+    "9ኛ ወር"
   ];
 
   @override
@@ -203,8 +182,8 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                       padding: const EdgeInsets.symmetric(horizontal: 40),
                       child: Text(
                         profileViewModel.isAmharic
-                            ? "የእርግዝና ሳምንት"
-                            : "Week of Pregnancy",
+                            ? "የእርግዝና ወር"
+                            : "Month of Pregnancy",
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,

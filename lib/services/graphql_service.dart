@@ -2,6 +2,7 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:lenat_mobile/services/auth_service.dart';
 import '../../app/service_locator.dart';
+import 'dart:convert';
 
 class GraphQLService {
   static const String _baseUrl = 'http://92.205.167.80:8080/v1/graphql';
@@ -24,38 +25,34 @@ class GraphQLService {
 
   Future<GraphQLClient> _getClient({String? role}) async {
     final token = await _secureStorage.read(key: 'access_token');
-
+    print("token: $token");
     // If no token is present, use unauthenticated client
     if (token == null) {
       return _getUnauthenticatedClient();
     }
 
+    // Get user data to extract user ID
+    final userDataStr = await _secureStorage.read(key: 'user_data');
+    if (userDataStr == null) {
+      throw Exception('User data not found');
+    }
+    final userData = jsonDecode(userDataStr) as Map<String, dynamic>;
+    final userId = userData['id'] as String;
+
     final Map<String, String> headers = {
       'Content-Type': 'application/json',
-      'x-hasura-admin-secret': '123',
+      'Authorization': 'Bearer $token',
+      'x-hasura-role': role ?? GraphQLService.roleMe,
+      'x-hasura-user-id': userId,
     };
-
-    // Add role header if specified (this will override the default role from JWT)
-    if (role != null) {
-      headers['x-hasura-role'] = role;
-    }
 
     final HttpLink httpLink = HttpLink(
       _baseUrl,
       defaultHeaders: headers,
     );
 
-    final AuthLink authLink = AuthLink(
-      getToken: () async {
-        final token = await _secureStorage.read(key: 'access_token');
-        return token != null ? 'Bearer $token' : null;
-      },
-    );
-
-    final Link link = authLink.concat(httpLink);
-
     return GraphQLClient(
-      link: link,
+      link: httpLink,
       cache: GraphQLCache(),
     );
   }

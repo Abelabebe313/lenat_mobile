@@ -11,6 +11,7 @@ class UserModel {
   final String? bio;
   final String? relationship;
   final int? pregnancyPeriod;
+  final Map<String, dynamic>? media;
 
   UserModel({
     required this.id,
@@ -25,6 +26,7 @@ class UserModel {
     this.bio,
     this.relationship,
     this.pregnancyPeriod,
+    this.media,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -41,6 +43,7 @@ class UserModel {
       bio: json['bio'] as String?,
       relationship: json['relationship'] as String?,
       pregnancyPeriod: json['pregnancy_period'] as int?,
+      media: json['media'] as Map<String, dynamic>?,
     );
   }
 
@@ -58,6 +61,7 @@ class UserModel {
       'bio': bio,
       'relationship': relationship,
       'pregnancy_period': pregnancyPeriod,
+      'media': media,
     };
   }
 
@@ -74,6 +78,7 @@ class UserModel {
     String? bio,
     String? relationship,
     int? pregnancyPeriod,
+    Map<String, dynamic>? media,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -88,6 +93,7 @@ class UserModel {
       bio: bio ?? this.bio,
       relationship: relationship ?? this.relationship,
       pregnancyPeriod: pregnancyPeriod ?? this.pregnancyPeriod,
+      media: media ?? this.media,
     );
   }
 }

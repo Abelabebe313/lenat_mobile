@@ -34,6 +34,7 @@ class ProfileEditViewModel extends ChangeNotifier {
 
   Future<void> updateProfile({
     required String fullName,
+    required String phoneNumber,
     required String dateOfBirth,
     String? relationship,
     int? pregnancyPeriod,
@@ -45,6 +46,7 @@ class ProfileEditViewModel extends ChangeNotifier {
       await _authService.updateUserProfile(
         gender: _selectedGender,
         fullName: fullName,
+        phoneNumber: phoneNumber,
         dateOfBirth: dateOfBirth,
         relationship: relationship,
         pregnancyPeriod: pregnancyPeriod,

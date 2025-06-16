@@ -67,10 +67,10 @@ class AuthViewModel extends ChangeNotifier {
     final result = await _authService.handleGoogleCallback(code);
 
     if (result != null) {
-      await _storage.write(key: 'access_token', value: result['access_token']);
-      await _storage.write(
-          key: 'refresh_token', value: result['refresh_token']);
-
+      if (result['complete_user'] != null) {
+        _currentUser = UserModel.fromJson(result['complete_user']);
+        notifyListeners();
+      }
       return result['new_user'] ?? false;
     }
 
@@ -94,9 +94,10 @@ class AuthViewModel extends ChangeNotifier {
 
     final result = await _authService.completeTelegramAuth(_ssid!, _tsession!);
     if (result != null) {
-      await _storage.write(key: 'access_token', value: result['access_token']);
-      await _storage.write(
-          key: 'refresh_token', value: result['refresh_token']);
+      if (result['complete_user'] != null) {
+        _currentUser = UserModel.fromJson(result['complete_user']);
+        notifyListeners();
+      }
       return result['new_user'] ?? false;
     }
 

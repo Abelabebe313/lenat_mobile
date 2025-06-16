@@ -90,19 +90,22 @@ class AuthService {
 
       final data = result.data?['auth_otp_callback'];
       if (data != null) {
-        // Create user model
-        final user = UserModel.fromJson(data);
-
         // Store tokens securely
         await _secureStorage.write(
             key: 'access_token', value: data['access_token']);
         await _secureStorage.write(
             key: 'refresh_token', value: data['refresh_token']);
 
-        // Store user data
+        // Fetch complete user data
+        final completeUser = await fetchCompleteUserData(data['id']);
+        if (completeUser != null) {
+          return completeUser;
+        }
+
+        // Fallback to basic user data if complete fetch fails
+        final user = UserModel.fromJson(data);
         await _secureStorage.write(
             key: 'user_data', value: jsonEncode(user.toJson()));
-
         return user;
       }
 
@@ -127,10 +130,73 @@ class AuthService {
     }
   }
 
+  Future<UserModel?> fetchCompleteUserData(String userId) async {
+    try {
+      final client = await GraphQLService.getClient();
+      const query = r'''
+        query GetUserData($userId: uuid!) {
+          users_by_pk(id: $userId) {
+            email
+            id
+            phone_number
+            status
+            updated_at
+            auth_provider
+            profile {
+              birth_date
+              full_name
+              gender
+              id
+            }
+          }
+        }
+      ''';
+
+      final result = await client.query(
+        QueryOptions(
+          document: gql(query),
+          variables: {'userId': userId},
+        ),
+      );
+
+      if (result.hasException) {
+        throw Exception(result.exception?.graphqlErrors.first.message ??
+            'Failed to fetch user data');
+      }
+
+      final userData = result.data?['users_by_pk'];
+      if (userData != null) {
+        // Transform the data to match UserModel format
+        final transformedData = {
+          'id': userData['id'],
+          'email': userData['email'],
+          'phone_number': userData['phone_number'],
+          'role': 'user', // Default role
+          'new_user':
+              false, // Default to false since we're fetching existing user
+          'gender': userData['profile']?['gender'],
+          'full_name': userData['profile']?['full_name'],
+          'birth_date': userData['profile']?['birth_date'],
+        };
+
+        // Store the complete user data
+        await _secureStorage.write(
+            key: 'user_data', value: jsonEncode(transformedData));
+
+        return UserModel.fromJson(transformedData);
+      }
+      return null;
+    } catch (e) {
+      print('Error fetching complete user data: $e');
+      return null;
+    }
+  }
+
   Future<void> updateUserProfile({
     required String gender,
     String? profileImage,
     String? fullName,
+    String? phoneNumber,
     String? dateOfBirth,
     String? bio,
     String? relationship,
@@ -149,14 +215,24 @@ class AuthService {
       final existingUserData = jsonDecode(userDataStr) as Map<String, dynamic>;
       final userId = existingUserData['id'] as String;
 
-      // First mutation for profile update
-      const profileMutation = r'''
-        mutation($userId: uuid!, $gender: String!, $fullName: String!, $dateOfBirth: date!) {
-          update_profiles(where: {id: {_eq: $userId}}, _set: {
-            gender: $gender,
-            full_name: $fullName,
-            birth_date: $dateOfBirth
-          }) {
+      // Combined mutation for both profile and patient updates
+      const mutation = r'''
+        mutation UpdateProfileFully(
+          $userId: uuid!,
+          $gender: String!,
+          $fullName: String!,
+          $dateOfBirth: date!,
+          $relationship: enum_parent_relationship_enum,
+          $pregnancyPeriod: Int
+        ) {
+          update_profiles(
+            where: {id: {_eq: $userId}},
+            _set: {
+              gender: $gender,
+              full_name: $fullName,
+              birth_date: $dateOfBirth
+            }
+          ) {
             returning {
               birth_date
               full_name
@@ -164,16 +240,13 @@ class AuthService {
               id
             }
           }
-        }
-      ''';
-
-      // Second mutation for patient profile update
-      const patientMutation = r'''
-        mutation($userId: uuid!, $relationship: enum_parent_relationship_enum, $pregnancyPeriod: Int) {
-          update_profile_patients(where: {id: {_eq: $userId}}, _set: {
-            relationship: $relationship,
-            pregnancy_period: $pregnancyPeriod
-          }) {
+          update_profile_patients(
+            where: {id: {_eq: $userId}},
+            _set: {
+              relationship: $relationship,
+              pregnancy_period: $pregnancyPeriod
+            }
+          ) {
             returning {
               pregnancy_period
               relationship
@@ -184,23 +257,26 @@ class AuthService {
 
       final result = await client.mutate(
         MutationOptions(
-          document: gql(profileMutation),
+          document: gql(mutation),
           variables: {
             'userId': userId,
             'gender': gender,
             'fullName': fullName,
             'dateOfBirth': dateOfBirth,
+            'relationship': relationship,
+            'pregnancyPeriod': pregnancyPeriod,
           },
         ),
       );
 
       if (result.hasException) {
-        final error = result.exception?.graphqlErrors.first.message ??
-            'Failed to update profile';
-        throw Exception(error);
+        throw Exception(result.exception?.graphqlErrors.first.message ??
+            'Failed to update profile');
       }
 
       final profileData = result.data?['update_profiles']?['returning']?[0];
+      final patientData =
+          result.data?['update_profile_patients']?['returning']?[0];
 
       if (profileData != null) {
         // Merge profile data with existing user data
@@ -212,49 +288,15 @@ class AuthService {
           'new_user': false,
         };
 
+        // Add patient data if available
+        if (patientData != null) {
+          updatedUserData['relationship'] = patientData['relationship'];
+          updatedUserData['pregnancy_period'] = patientData['pregnancy_period'];
+        }
+
         // Save merged data
         await _secureStorage.write(
             key: 'user_data', value: jsonEncode(updatedUserData));
-      }
-
-      final patientResult = await client.mutate(
-        MutationOptions(
-          document: gql(patientMutation),
-          variables: {
-            'userId': userId,
-            'relationship': relationship,
-            'pregnancyPeriod': pregnancyPeriod,
-          },
-        ),
-      );
-
-      if (patientResult.hasException) {
-        final error = patientResult.exception?.graphqlErrors.first.message ??
-            'Failed to update patient profile';
-        throw Exception(error);
-      }
-
-      final patientData =
-          patientResult.data?['update_profile_patients']?['returning']?[0];
-
-      if (patientData != null) {
-        // Get the latest user data after profile update
-        final latestUserDataStr = await _secureStorage.read(key: 'user_data');
-        if (latestUserDataStr != null) {
-          final latestUserData =
-              jsonDecode(latestUserDataStr) as Map<String, dynamic>;
-
-          // Merge patient data with existing user data
-          final finalUserData = {
-            ...latestUserData,
-            'relationship': relationship,
-            'pregnancy_period': pregnancyPeriod,
-          };
-
-          // Save final merged data
-          await _secureStorage.write(
-              key: 'user_data', value: jsonEncode(finalUserData));
-        }
       }
     } catch (e) {
       print('Error updating profile: $e');
@@ -343,7 +385,25 @@ class AuthService {
       variables: {'code': code},
     ));
 
-    return result.data?['auth_google_callback'];
+    final data = result.data?['auth_google_callback'];
+    if (data != null) {
+      // Store tokens securely
+      await _secureStorage.write(
+          key: 'access_token', value: data['access_token']);
+      await _secureStorage.write(
+          key: 'refresh_token', value: data['refresh_token']);
+
+      // Fetch complete user data
+      final completeUser = await fetchCompleteUserData(data['id']);
+      if (completeUser != null) {
+        return {
+          ...data,
+          'complete_user': completeUser.toJson(),
+        };
+      }
+    }
+
+    return data;
   }
 
   Future<Map<String, dynamic>?> startTelegramAuth(String phone) async {
@@ -380,6 +440,8 @@ class AuthService {
         new_user
         role
         roles
+        id
+        email
       }
     }
   ''';
@@ -392,40 +454,58 @@ class AuthService {
       },
     ));
 
-    return result.data?['auth_telegram_callback'];
+    final data = result.data?['auth_telegram_callback'];
+    if (data != null) {
+      // Store tokens securely
+      await _secureStorage.write(
+          key: 'access_token', value: data['access_token']);
+      await _secureStorage.write(
+          key: 'refresh_token', value: data['refresh_token']);
+
+      // Fetch complete user data
+      final completeUser = await fetchCompleteUserData(data['id']);
+      if (completeUser != null) {
+        return {
+          ...data,
+          'complete_user': completeUser.toJson(),
+        };
+      }
+    }
+
+    return data;
   }
 
   Future<void> logout() async {
-    try {
-      final refreshToken = await _secureStorage.read(key: 'refresh_token');
-      if (refreshToken != null) {
-        final client = await GraphQLService.getClient();
-        const mutation = r'''
-          mutation($refresh_token: String!) {
-            auth_logout(refresh_token: $refresh_token) {
-              message
-            }
-          }
-        ''';
+    await _secureStorage.deleteAll();
+  }
 
-        await client.mutate(
-          MutationOptions(
-            document: gql(mutation),
-            variables: {'refresh_token': refreshToken},
-          ),
-        );
+  Future<Map<String, dynamic>?> getProfileUploadUrl(String fileName) async {
+    try {
+      final client = await GraphQLService.getClient();
+      const query = r'''
+        query GetProfileUploadUrl($fileName: String!) {
+          storage_profile_upload(file_name: $fileName) {
+            url
+          }
+        }
+      ''';
+
+      final result = await client.query(
+        QueryOptions(
+          document: gql(query),
+          variables: {'fileName': fileName},
+        ),
+      );
+
+      if (result.hasException) {
+        throw Exception(result.exception?.graphqlErrors.first.message ??
+            'Failed to get upload URL');
       }
 
-      // Clear all local data
-      await _secureStorage.deleteAll();
-      final prefs = await _prefs;
-      await prefs.clear();
+      return result.data?['storage_profile_upload'];
     } catch (e) {
-      print('Error during logout: $e');
-      // Even if the server request fails, we should still clear local data
-      await _secureStorage.deleteAll();
-      final prefs = await _prefs;
-      await prefs.clear();
+      print('Error getting profile upload URL: $e');
+      rethrow;
     }
   }
 }

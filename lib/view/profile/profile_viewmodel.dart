@@ -5,6 +5,7 @@ import 'package:lenat_mobile/services/auth_service.dart';
 import 'package:lenat_mobile/services/minio_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
+import 'dart:async';
 
 class ProfileViewModel extends ChangeNotifier {
   final _authService = locator<AuthService>();
@@ -26,6 +27,11 @@ class ProfileViewModel extends ChangeNotifier {
     _loadLanguagePreference();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   Future<void> _loadLanguagePreference() async {
     final prefs = await SharedPreferences.getInstance();
     _isAmharic = prefs.getBool(_languageKey) ?? true;
@@ -38,7 +44,7 @@ class ProfileViewModel extends ChangeNotifier {
       notifyListeners();
 
       _currentUser = await _authService.getCurrentUser();
-      print("current user: ${_currentUser?.fullName}");
+      print("current user: ${_currentUser?.email}");
 
       _isLoading = false;
       notifyListeners();
@@ -54,11 +60,11 @@ class ProfileViewModel extends ChangeNotifier {
       _isUploading = true;
       notifyListeners();
 
-      // Upload the image to MinIO
+      // Upload the image to MinIO and get the URL
       _uploadedImageUrl = await _minioService.uploadFile(imageFile);
 
-      // TODO: Update user profile with new image URL
-      // await _authService.updateProfileImage(_uploadedImageUrl!);
+      // Reload user data to get updated profile information
+      await loadUserData();
 
       _isUploading = false;
       notifyListeners();

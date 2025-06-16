@@ -179,36 +179,51 @@ class _ProfilePageState extends State<ProfilePage> {
           children: [
             GestureDetector(
               onTap: _showImagePickerBottomSheet,
-              child: Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(12),
-                  image: _selectedImage != null
-                      ? DecorationImage(
-                          image: FileImage(_selectedImage!),
-                          fit: BoxFit.cover,
-                        )
-                      : viewModel.uploadedImageUrl != null
-                          ? DecorationImage(
-                              image: NetworkImage(viewModel.uploadedImageUrl!),
-                              fit: BoxFit.cover,
+              child: viewModel.uploadedImageUrl != null
+                  ? Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(12),
+                          image: _selectedImage != null
+                              ? DecorationImage(
+                                  image: FileImage(_selectedImage!),
+                                  fit: BoxFit.cover,
+                                )
+                              : DecorationImage(
+                                  image:
+                                      NetworkImage(viewModel.uploadedImageUrl!),
+                                  fit: BoxFit.cover,
+                                )),
+                      child: viewModel.isUploading
+                          ? const Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                              ),
                             )
-                          : const DecorationImage(
-                              image:
-                                  AssetImage('assets/images/login-image.png'),
-                              fit: BoxFit.cover,
-                            ),
-                ),
-                child: viewModel.isUploading
-                    ? const Center(
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
+                          : null,
+                    )
+                  : Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Primary,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: Text(
+                          viewModel.currentUser?.fullName?.substring(0, 1) ??
+                              "",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'NotoSansEthiopic',
+                          ),
                         ),
-                      )
-                    : null,
-              ),
+                      ),
+                    ),
             ),
             Positioned(
               bottom: 0,
@@ -221,6 +236,13 @@ class _ProfilePageState extends State<ProfilePage> {
                   decoration: BoxDecoration(
                     color: Colors.blue,
                     borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
                   ),
                   child: const Center(
                     child: Icon(
