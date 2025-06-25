@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:lenat_mobile/core/colors.dart';
+import 'package:lenat_mobile/view/content/content_feed_view.dart';
+import 'package:lenat_mobile/view/media/media_viewmodel.dart';
+import 'package:lenat_mobile/view/profile/profile_viewmodel.dart';
+import 'package:provider/provider.dart';
 
 class MediaView extends StatefulWidget {
   const MediaView({super.key});
@@ -12,26 +16,24 @@ class MediaView extends StatefulWidget {
 class _MediaViewState extends State<MediaView> {
   @override
   Widget build(BuildContext context) {
+    final profileViewModel = Provider.of<ProfileViewModel>(context);
+    final mediaViewModel = Provider.of<MediaViewModel>(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
-        title: const Text(
-          'ሚድያ',
-          style: TextStyle(
+        title: Text(
+          profileViewModel.isAmharic ? "ሚድያ" : "Content",
+          style: const TextStyle(
             color: Colors.black,
             fontFamily: 'NotoSansEthiopic',
             fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
-          HugeIcon(
-            icon: HugeIcons.strokeRoundedBookmark02,
-            color: Colors.black,
-            size: 24.0,
-          ),
           const SizedBox(width: 16),
           HugeIcon(
             icon: HugeIcons.strokeRoundedNotification02,
@@ -52,27 +54,34 @@ class _MediaViewState extends State<MediaView> {
                 height: 200,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  itemCount: 10,
+                  itemCount: mediaViewModel.mediaCategories.length,
                   itemBuilder: (context, index) {
-                    return _mediaCatagotyCard();
+                    return _mediaCatagotyCard(
+                        mediaViewModel.mediaCategories[index]);
                   },
                 ),
               ),
               const SizedBox(height: 32),
-              const Text(
-                "ትምህርታዊ ጥያቄዎች",
-                style: TextStyle(
+              Text(
+                profileViewModel.isAmharic
+                    ? "ትምህርታዊ ጥያቄዎች"
+                    : "Trivia Questions",
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   fontFamily: 'NotoSansEthiopic',
                 ),
               ),
               const SizedBox(height: 16),
-              _buildTriviaCard(),
+              _buildTriviaCard(
+                profileViewModel,
+              ),
               const SizedBox(height: 16),
-              const Text(
-                "የተወዳጅ ወይም የተመዘገበ ሚድያ",
-                style: TextStyle(
+              Text(
+                profileViewModel.isAmharic
+                    ? "የተወዳጅ ወይም የተመዘገበ ሚድያ"
+                    : "Liked or Bookmarked Content",
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   fontFamily: 'NotoSansEthiopic',
@@ -101,7 +110,9 @@ class _MediaViewState extends State<MediaView> {
     );
   }
 
-  Widget _buildTriviaCard() {
+  Widget _buildTriviaCard(
+    ProfileViewModel profileViewModel,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -126,9 +137,9 @@ class _MediaViewState extends State<MediaView> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'የሳምንቱ 8 ጥያቄዎች',
-                style: TextStyle(
+              Text(
+                profileViewModel.isAmharic ? "የሳምንቱ 8 ጥያቄዎች" : "Week 8 Trivia",
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontFamily: 'NotoSansEthiopic',
                   fontSize: 14,
@@ -156,8 +167,8 @@ class _MediaViewState extends State<MediaView> {
                   ),
                 ),
                 child: Text(
-                  "ጨዋታ ጀምር",
-                  style: TextStyle(
+                  profileViewModel.isAmharic ? "ጨዋታ ጀምር" : "Let's Play",
+                  style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                     color: Colors.white,
@@ -172,52 +183,67 @@ class _MediaViewState extends State<MediaView> {
     );
   }
 
-  Widget _mediaCatagotyCard() {
-    return Container(
-      width: 200,
-      margin: const EdgeInsets.only(right: 16),
-      decoration: BoxDecoration(
-        color: Color(0xFFFBFBFB),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.asset(
-                'assets/images/login-image.png',
-                fit: BoxFit.cover,
-                width: 200,
-                height: 200,
-              ),
+  Widget _mediaCatagotyCard(Map<String, String> category) {
+    return GestureDetector(
+      onTap: () {
+        // Navigator.pushNamed(context, '/content_feed');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ContentFeedView(
+              category: category['title'] ?? "Content Feed",
             ),
           ),
-          Positioned(
-            bottom: 4,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Color(0xFFD5E5F7),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Text(
-                  'የመጀመሪያ ወር',
-                  style: TextStyle(
-                    color: Primary,
-                    fontFamily: 'NotoSansEthiopic',
-                    fontWeight: FontWeight.w500,
-                    fontSize: 14,
-                  ),
+        );
+      },
+      child: Container(
+        width: 200,
+        margin: const EdgeInsets.only(right: 16),
+        decoration: BoxDecoration(
+          color: Color(0xFFFBFBFB),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.asset(
+                  category['image'] ?? 'assets/images/default.png',
+                  fit: BoxFit.cover,
+                  width: 200,
+                  height: 200,
                 ),
               ),
             ),
-          ),
-        ],
+            Positioned(
+              bottom: 4,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                    width: 140,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Color(0xFFD5E5F7),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Center(
+                      child: Text(
+                        category['title'] ?? 'Unknown',
+                        style: TextStyle(
+                          color: Primary,
+                          fontFamily: 'NotoSansEthiopic',
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                    )),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

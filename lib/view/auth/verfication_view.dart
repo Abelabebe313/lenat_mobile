@@ -286,6 +286,7 @@ class _VerificationViewState extends State<VerificationView> {
                       TextButton(
                         onPressed: _remainingSeconds == 0
                             ? () async {
+                                _otpController.clear();
                                 setState(() => _loading = true);
                                 try {
                                   await viewModel.getAuthOtp(email);
@@ -294,6 +295,7 @@ class _VerificationViewState extends State<VerificationView> {
                                     _startTimer();
                                   });
                                 } catch (e) {
+                                  _otpController.clear();
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(

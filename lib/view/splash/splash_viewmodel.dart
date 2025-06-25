@@ -10,22 +10,28 @@ class SplashViewModel extends ChangeNotifier {
       locator<LocalStorageService>();
 
   Future<String> decideNextRoute() async {
-    final isFirstLaunch = await _localStorageService.isFirstLaunch();
-    if (isFirstLaunch) return '/onboarding';
+    try {
+      final isFirstLaunch = await _localStorageService.isFirstLaunch();
+      if (isFirstLaunch) return '/onboarding';
 
-    final isLoggedIn = await _authService.isLoggedIn();
-    if (!isLoggedIn) return '/login';
+      final isLoggedIn = await _authService.isLoggedIn();
+      if (!isLoggedIn) return '/login';
 
-    // Get current user to check if they are new
-    final user = await _authService.getCurrentUser();
-    if (user == null) return '/login';
+      // Get current user to check if they are new
+      final user = await _authService.getCurrentUser();
+      if (user == null) return '/login';
 
-    // If user is new (new_user: true), they need to complete profile setup
-    if (user.isNewUser) {
-      return '/gender-selection';
+      // If user is new (new_user: true), they need to complete profile setup
+      if (user.isNewUser) {
+        return '/gender-selection';
+      }
+
+      // Existing user (new_user: false) goes directly to main
+      return '/main';
+    } catch (e) {
+      print('Error in decideNextRoute: $e');
+      // If there's any error, go to login
+      return '/login';
     }
-
-    // Existing user (new_user: false) goes directly to main
-    return '/main';
   }
 }

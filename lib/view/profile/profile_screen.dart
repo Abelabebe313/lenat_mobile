@@ -4,6 +4,8 @@ import 'package:lenat_mobile/core/colors.dart';
 import 'package:provider/provider.dart';
 import 'package:lenat_mobile/view/profile/profile_viewmodel.dart';
 import 'package:lenat_mobile/view/auth/auth_viewmodel.dart';
+import 'package:lenat_mobile/view/profile_setup/profile_setup_viewmodel.dart';
+import 'package:lenat_mobile/view/profile_edit/profile_edit_viewmodel.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
@@ -164,7 +166,7 @@ class _ProfilePageState extends State<ProfilePage> {
               viewModel.isAmharic ? 'እርዳታ እና ድጋፍ' : 'Help & Support', context),
           _buildHelpCenterList(context),
           const SizedBox(height: 32),
-          _buildLogoutButton(context),
+          _buildDeleteAccountButton(context),
         ],
       ),
     );
@@ -179,7 +181,7 @@ class _ProfilePageState extends State<ProfilePage> {
           children: [
             GestureDetector(
               onTap: _showImagePickerBottomSheet,
-              child: viewModel.uploadedImageUrl != null
+              child: viewModel.currentUser?.media?['url'] != null
                   ? Container(
                       width: 80,
                       height: 80,
@@ -193,7 +195,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 )
                               : DecorationImage(
                                   image:
-                                      NetworkImage(viewModel.uploadedImageUrl!),
+                                      NetworkImage(viewModel.currentUser?.media?['url'] ?? ''),
                                   fit: BoxFit.cover,
                                 )),
                       child: viewModel.isUploading
@@ -468,7 +470,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   TextButton(
                     onPressed: () => Navigator.pop(context, true),
                     child: Text(
-                      viewModel.isAmharic ? 'ውጣ' : 'Logout',
+                      viewModel.isAmharic ? 'አዎ' : 'Logout',
                       style: const TextStyle(
                         color: Colors.red,
                         fontFamily: 'NotoSansEthiopic',
@@ -481,13 +483,24 @@ class _ProfilePageState extends State<ProfilePage> {
 
             if (shouldLogout == true && context.mounted) {
               try {
+                // Reset all ViewModels
+                final profileViewModel =
+                    Provider.of<ProfileViewModel>(context, listen: false);
+                final profileSetupViewModel =
+                    Provider.of<ProfileSetupViewModel>(context, listen: false);
+                final profileEditViewModel =
+                    Provider.of<ProfileEditViewModel>(context, listen: false);
+
+                profileViewModel.resetProfileData();
+                profileSetupViewModel.resetProfileSetupData();
+                profileEditViewModel.resetProfileEditData();
+
+                // Perform logout
                 await authViewModel.logout();
+
                 if (context.mounted) {
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    '/login',
-                    (route) => false,
-                  );
+                  // Navigate to login and clear all routes
+                  Navigator.pushReplacementNamed(context, '/login');
                 }
               } catch (e) {
                 if (context.mounted) {
@@ -539,7 +552,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildLogoutButton(BuildContext context) {
+  Widget _buildDeleteAccountButton(BuildContext context) {
     final viewModel = Provider.of<ProfileViewModel>(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),

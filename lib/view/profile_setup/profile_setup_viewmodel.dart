@@ -41,4 +41,11 @@ class ProfileSetupViewModel extends ChangeNotifier {
       rethrow;
     }
   }
+
+  // Method to reset profile setup data when user logs out
+  void resetProfileSetupData() {
+    _selectedGender = "female";
+    _isLoading = false;
+    notifyListeners();
+  }
 }

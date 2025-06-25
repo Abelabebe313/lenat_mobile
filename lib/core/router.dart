@@ -39,7 +39,7 @@ class AppRouter {
 
       case '/profile-setup':
         return MaterialPageRoute(builder: (_) => const ProfileSetupView());
-      
+
       case '/profile-edit':
         return MaterialPageRoute(builder: (_) => const ProfileEditView());
 
@@ -61,8 +61,9 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => CheckOutView());
 
       // Media
-      case '/content_feed':
-        return MaterialPageRoute(builder: (_) => ContentFeedView());
+
+      // case '/content_feed':
+      //   return MaterialPageRoute(builder: (_) => const ContentFeedView());
       // Trivia
       case '/trivia':
         return MaterialPageRoute(builder: (_) => const TriviaView());

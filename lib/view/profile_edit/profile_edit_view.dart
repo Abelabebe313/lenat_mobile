@@ -61,6 +61,7 @@ class _ProfileEditViewState extends State<ProfileEditView> {
   @override
   void dispose() {
     fullNameController.dispose();
+    phoneNumberController.dispose();
     super.dispose();
   }
 
@@ -71,6 +72,9 @@ class _ProfileEditViewState extends State<ProfileEditView> {
       // Set full name
       fullNameController.text = user.fullName ?? '';
 
+      // Set phone number
+      phoneNumberController.text = user.phoneNumber ?? '';
+
       // Set relationship if exists
       if (user.relationship != null) {
         selectedRelationShip = user.relationship!;
@@ -80,17 +84,22 @@ class _ProfileEditViewState extends State<ProfileEditView> {
       if (user.pregnancyPeriod != null &&
           viewModel.selectedGender == "female") {
         pregnancy = "yes";
-        selectedValue = "${user.pregnancyPeriod}ኛ ሳምንት";
+        selectedValue = "${user.pregnancyPeriod}ኛ ወር";
       } else {
         pregnancy = "no";
       }
 
       // Set date of birth if exists
       if (user.dateOfBirth != null) {
-        final date = DateTime.parse(user.dateOfBirth!);
-        selectedDay = date.day.toString().padLeft(2, '0');
-        selectedMonth = date.month.toString().padLeft(2, '0');
-        selectedYear = date.year.toString();
+        try {
+          final date = DateTime.parse(user.dateOfBirth!);
+          selectedDay = date.day.toString().padLeft(2, '0');
+          selectedMonth = date.month.toString().padLeft(2, '0');
+          selectedYear = date.year.toString();
+        } catch (e) {
+          print('Error parsing date of birth: $e');
+          // Keep default values if parsing fails
+        }
       }
     }
   }
@@ -138,133 +147,44 @@ class _ProfileEditViewState extends State<ProfileEditView> {
             icon: Icon(Icons.arrow_back_ios, color: Colors.black),
           )),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                profileViewModel.isAmharic ? "መገለጫ ያስተካክሉ" : "Edit Profile",
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'NotoSansEthiopic',
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                profileViewModel.isAmharic
-                    ? "እባኮትን የእርሶን መገለጫ ያስተካክሉ"
-                    : "Please update your profile information",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 12,
-                ),
-              ),
-              const SizedBox(height: 30),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    profileViewModel.isAmharic ? "ሙሉ ስም" : "Full Name",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
-                      fontFamily: 'NotoSansEthiopic',
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: TextFieldColor,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: TextFormField(
-                      controller: fullNameController,
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(
-                        hintText: "lenat user",
-                        hintStyle: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black.withOpacity(0.5),
-                          fontFamily: 'NotoSansEthiopic',
-                        ),
-                        border: InputBorder.none,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    profileViewModel.isAmharic ? "ስልክ ቁጥር" : "Phone Number",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
-                      fontFamily: 'NotoSansEthiopic',
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: TextFieldColor,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: TextFormField(
-                      controller: phoneNumberController,
-                      keyboardType: TextInputType.phone,
-                      decoration: InputDecoration(
-                        hintText: " 0912 or 0712 ..",
-                        hintStyle: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black.withOpacity(0.5),
-                          fontFamily: 'NotoSansEthiopic',
-                        ),
-                        border: InputBorder.none,
-                      ),
-                    ),
-                  ),
-                  // pregnancy question
-                  const SizedBox(height: 20),
-                  if (profileEditViewModel.selectedGender == "female") ...[
+        child: profileEditViewModel.isLoading &&
+                profileEditViewModel.currentUser == null
+            ? const Center(
+                child: CircularProgressIndicator(),
+              )
+            : SingleChildScrollView(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
                     Text(
                       profileViewModel.isAmharic
-                          ? "እርጉዝ ኖት?"
-                          : "Are you pregnant?",
+                          ? "መገለጫ ያስተካክሉ"
+                          : "Edit Profile",
                       style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.black,
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
                         fontFamily: 'NotoSansEthiopic',
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        pregnancyCard(
-                          label: "አዎን",
-                          value: "yes",
-                        ),
-                        pregnancyCard(
-                          label: "አይደለሁም",
-                          value: "no",
-                        ),
-                      ],
+                    Text(
+                      profileViewModel.isAmharic
+                          ? "እባኮትን የእርሶን መገለጫ ያስተካክሉ"
+                          : "Please update your profile information",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 12,
+                      ),
                     ),
-                    const SizedBox(height: 20),
-                    if (pregnancy == "yes") ...[
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 40),
-                        child: Text(
-                          profileViewModel.isAmharic
-                              ? "የእርግዝና ሳምንት"
-                              : "Week of Pregnancy",
+                    const SizedBox(height: 30),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          profileViewModel.isAmharic ? "ሙሉ ስም" : "Full Name",
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
@@ -272,313 +192,451 @@ class _ProfileEditViewState extends State<ProfileEditView> {
                             fontFamily: 'NotoSansEthiopic',
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          SizedBox(
-                            width: 30,
-                            height: 30,
-                            child: HugeIcon(
-                              icon: HugeIcons.strokeRoundedArrowMoveDownRight,
-                              color: Colors.black,
-                              size: 30.0,
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: TextFieldColor,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: TextFormField(
+                            controller: fullNameController,
+                            keyboardType: TextInputType.text,
+                            decoration: InputDecoration(
+                              hintText: "lenat user",
+                              hintStyle: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black.withOpacity(0.5),
+                                fontFamily: 'NotoSansEthiopic',
+                              ),
+                              border: InputBorder.none,
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Container(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16),
-                              decoration: BoxDecoration(
-                                color: TextFieldColor,
-                                borderRadius: BorderRadius.circular(10),
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          profileViewModel.isAmharic
+                              ? "ስልክ ቁጥር"
+                              : "Phone Number",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black,
+                            fontFamily: 'NotoSansEthiopic',
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: TextFieldColor,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: TextFormField(
+                            controller: phoneNumberController,
+                            keyboardType: TextInputType.phone,
+                            decoration: InputDecoration(
+                              hintText: " 0912 or 0712 ..",
+                              hintStyle: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black.withOpacity(0.5),
+                                fontFamily: 'NotoSansEthiopic',
                               ),
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton<String>(
-                                  dropdownColor: TextFieldColor,
-                                  value: selectedValue,
-                                  isExpanded: true,
-                                  style: TextStyle(
-                                    fontFamily: 'NotoSansEthiopic',
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.black.withOpacity(0.5),
-                                  ),
-                                  icon: const Icon(Icons.keyboard_arrow_down),
-                                  items: options.map((String value) {
-                                    return DropdownMenuItem<String>(
-                                      value: value,
-                                      child: Text(value),
-                                    );
-                                  }).toList(),
-                                  onChanged: (String? newValue) {
-                                    setState(() {
-                                      selectedValue = newValue!;
-                                    });
-                                  },
+                              border: InputBorder.none,
+                            ),
+                          ),
+                        ),
+                        // pregnancy question
+                        const SizedBox(height: 20),
+                        if (profileEditViewModel.selectedGender ==
+                            "female") ...[
+                          Text(
+                            profileViewModel.isAmharic
+                                ? "እርጉዝ ኖት?"
+                                : "Are you pregnant?",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black,
+                              fontFamily: 'NotoSansEthiopic',
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              pregnancyCard(
+                                label: "አዎን",
+                                value: "yes",
+                              ),
+                              pregnancyCard(
+                                label: "አይደለሁም",
+                                value: "no",
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          if (pregnancy == "yes") ...[
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 40),
+                              child: Text(
+                                profileViewModel.isAmharic
+                                    ? "የእርግዝና ሳምንት"
+                                    : "Week of Pregnancy",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.black,
+                                  fontFamily: 'NotoSansEthiopic',
                                 ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          SizedBox(
-                            width: 30,
-                            height: 30,
-                            child: HugeIcon(
-                              icon: HugeIcons.strokeRoundedCalendar04,
-                              color: Colors.black,
-                              size: 30.0,
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                SizedBox(
+                                  width: 30,
+                                  height: 30,
+                                  child: HugeIcon(
+                                    icon: HugeIcons
+                                        .strokeRoundedArrowMoveDownRight,
+                                    color: Colors.black,
+                                    size: 30.0,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16),
+                                    decoration: BoxDecoration(
+                                      color: TextFieldColor,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: DropdownButtonHideUnderline(
+                                      child: DropdownButton<String>(
+                                        dropdownColor: TextFieldColor,
+                                        value: selectedValue,
+                                        isExpanded: true,
+                                        style: TextStyle(
+                                          fontFamily: 'NotoSansEthiopic',
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.black.withOpacity(0.5),
+                                        ),
+                                        icon: const Icon(
+                                            Icons.keyboard_arrow_down),
+                                        items: options.map((String value) {
+                                          return DropdownMenuItem<String>(
+                                            value: value,
+                                            child: Text(value),
+                                          );
+                                        }).toList(),
+                                        onChanged: (String? newValue) {
+                                          setState(() {
+                                            selectedValue = newValue!;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                SizedBox(
+                                  width: 30,
+                                  height: 30,
+                                  child: HugeIcon(
+                                    icon: HugeIcons.strokeRoundedCalendar04,
+                                    color: Colors.black,
+                                    size: 30.0,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
+                          ],
                         ],
+                        const SizedBox(height: 20),
+                        Text(
+                          profileViewModel.isAmharic
+                              ? "የእርሶ ድርሻ"
+                              : "Who are you signing up as?",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black,
+                            fontFamily: 'NotoSansEthiopic',
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: TextFieldColor,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              dropdownColor: TextFieldColor,
+                              value: selectedRelationShip,
+                              isExpanded: true,
+                              style: TextStyle(
+                                fontFamily: 'NotoSansEthiopic',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black.withOpacity(0.5),
+                              ),
+                              icon: const Icon(Icons.keyboard_arrow_down),
+                              items: relationShipOptions.map((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value),
+                                );
+                              }).toList(),
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  selectedRelationShip = newValue!;
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 20),
+                        // age field
+                        Text(
+                          profileViewModel.isAmharic
+                              ? "የልደት ቀን"
+                              : "Date of Birth",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black,
+                            fontFamily: 'NotoSansEthiopic',
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            // Day Selector
+                            Expanded(
+                              child: Container(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 16),
+                                decoration: BoxDecoration(
+                                  color: TextFieldColor,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<String>(
+                                    dropdownColor: TextFieldColor,
+                                    value: selectedDay,
+                                    isExpanded: true,
+                                    style: TextStyle(
+                                      fontFamily: 'NotoSansEthiopic',
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.black.withOpacity(0.5),
+                                    ),
+                                    icon: const Icon(Icons.keyboard_arrow_down),
+                                    items: days.map((String value) {
+                                      return DropdownMenuItem<String>(
+                                        value: value,
+                                        child: Text(value),
+                                      );
+                                    }).toList(),
+                                    onChanged: (String? newValue) {
+                                      setState(() {
+                                        selectedDay = newValue!;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            // Month Selector
+                            Expanded(
+                              child: Container(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 16),
+                                decoration: BoxDecoration(
+                                  color: TextFieldColor,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<String>(
+                                    dropdownColor: TextFieldColor,
+                                    value: selectedMonth,
+                                    isExpanded: true,
+                                    style: TextStyle(
+                                      fontFamily: 'NotoSansEthiopic',
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.black.withOpacity(0.5),
+                                    ),
+                                    icon: const Icon(Icons.keyboard_arrow_down),
+                                    items: months.map((String value) {
+                                      return DropdownMenuItem<String>(
+                                        value: value,
+                                        child: Text(value),
+                                      );
+                                    }).toList(),
+                                    onChanged: (String? newValue) {
+                                      setState(() {
+                                        selectedMonth = newValue!;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            // Year Selector
+                            Expanded(
+                              child: Container(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 16),
+                                decoration: BoxDecoration(
+                                  color: TextFieldColor,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<String>(
+                                    dropdownColor: TextFieldColor,
+                                    value: selectedYear,
+                                    isExpanded: true,
+                                    style: TextStyle(
+                                      fontFamily: 'NotoSansEthiopic',
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.black.withOpacity(0.5),
+                                    ),
+                                    icon: const Icon(Icons.keyboard_arrow_down),
+                                    items: years.map((String value) {
+                                      return DropdownMenuItem<String>(
+                                        value: value,
+                                        child: Text(value),
+                                      );
+                                    }).toList(),
+                                    onChanged: (String? newValue) {
+                                      setState(() {
+                                        selectedYear = newValue!;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 50),
+
+                    /// Save button
+                    ElevatedButton(
+                      onPressed: profileEditViewModel.isLoading
+                          ? null
+                          : () async {
+                              try {
+                                // Format date of birth
+                                final dateOfBirth =
+                                    "$selectedYear-$selectedMonth-$selectedDay";
+
+                                // Get pregnancy period if applicable
+                                int? pregnancyPeriod;
+                                if (profileEditViewModel.selectedGender ==
+                                        "female" &&
+                                    pregnancy == "yes") {
+                                  // Convert Amharic text to number (e.g., "1ኛ ወር" -> 1)
+                                  final periodText =
+                                      selectedValue.split("ኛ")[0].trim();
+                                  pregnancyPeriod =
+                                      int.tryParse(periodText) ?? 1;
+                                }
+
+                                await profileEditViewModel.updateProfile(
+                                  fullName: fullNameController.text,
+                                  phoneNumber: phoneNumberController.text,
+                                  dateOfBirth: dateOfBirth,
+                                  relationship: selectedRelationShip,
+                                  pregnancyPeriod: pregnancyPeriod,
+                                );
+
+                                if (context.mounted) {
+                                  // Show success message
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        profileViewModel.isAmharic
+                                            ? "መገለጫ በተሳካቸ ሁኔታ ተዘምኗል"
+                                            : "Profile updated successfully",
+                                      ),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                  Navigator.pop(context);
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  // Check if refresh token is expired
+                                  if (e
+                                      .toString()
+                                      .contains('Token has expired')) {
+                                    // Navigate to login page
+                                    Navigator.of(context)
+                                        .pushNamedAndRemoveUntil(
+                                      '/login',
+                                      (route) => false,
+                                    );
+                                    return;
+                                  }
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        "Failed to update profile: $e",
+                                      ),
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 60,
+                          vertical: 12,
+                        ),
                       ),
-                    ],
+                      child: profileEditViewModel.isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              profileViewModel.isAmharic ? "አስቀምጥ" : "Save",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                                fontFamily: 'NotoSansEthiopic',
+                              ),
+                            ),
+                    ),
                   ],
-                  const SizedBox(height: 20),
-                  Text(
-                    profileViewModel.isAmharic
-                        ? "የእርሶ ድርሻ"
-                        : "Who are you signing up as?",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
-                      fontFamily: 'NotoSansEthiopic',
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: TextFieldColor,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        dropdownColor: TextFieldColor,
-                        value: selectedRelationShip,
-                        isExpanded: true,
-                        style: TextStyle(
-                          fontFamily: 'NotoSansEthiopic',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black.withOpacity(0.5),
-                        ),
-                        icon: const Icon(Icons.keyboard_arrow_down),
-                        items: relationShipOptions.map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            selectedRelationShip = newValue!;
-                          });
-                        },
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-                  // age field
-                  Text(
-                    profileViewModel.isAmharic ? "የልደት ቀን" : "Date of Birth",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
-                      fontFamily: 'NotoSansEthiopic',
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      // Day Selector
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          decoration: BoxDecoration(
-                            color: TextFieldColor,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              dropdownColor: TextFieldColor,
-                              value: selectedDay,
-                              isExpanded: true,
-                              style: TextStyle(
-                                fontFamily: 'NotoSansEthiopic',
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black.withOpacity(0.5),
-                              ),
-                              icon: const Icon(Icons.keyboard_arrow_down),
-                              items: days.map((String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList(),
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  selectedDay = newValue!;
-                                });
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      // Month Selector
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          decoration: BoxDecoration(
-                            color: TextFieldColor,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              dropdownColor: TextFieldColor,
-                              value: selectedMonth,
-                              isExpanded: true,
-                              style: TextStyle(
-                                fontFamily: 'NotoSansEthiopic',
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black.withOpacity(0.5),
-                              ),
-                              icon: const Icon(Icons.keyboard_arrow_down),
-                              items: months.map((String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList(),
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  selectedMonth = newValue!;
-                                });
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      // Year Selector
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          decoration: BoxDecoration(
-                            color: TextFieldColor,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              dropdownColor: TextFieldColor,
-                              value: selectedYear,
-                              isExpanded: true,
-                              style: TextStyle(
-                                fontFamily: 'NotoSansEthiopic',
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black.withOpacity(0.5),
-                              ),
-                              icon: const Icon(Icons.keyboard_arrow_down),
-                              items: years.map((String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList(),
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  selectedYear = newValue!;
-                                });
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 50),
-
-              /// Save button
-              ElevatedButton(
-                onPressed: profileEditViewModel.isLoading
-                    ? null
-                    : () async {
-                        try {
-                          // Format date of birth
-                          final dateOfBirth =
-                              "$selectedYear-$selectedMonth-$selectedDay";
-
-                          // Get pregnancy period if applicable
-                          int? pregnancyPeriod;
-                          if (profileEditViewModel.selectedGender == "female" &&
-                              pregnancy == "yes") {
-                            pregnancyPeriod =
-                                int.parse(selectedValue.split("ኛ")[0].trim());
-                          }
-
-                          await profileEditViewModel.updateProfile(
-                            fullName: fullNameController.text,
-                            phoneNumber: phoneNumberController.text,  
-                            dateOfBirth: dateOfBirth,
-                            relationship: selectedRelationShip,
-                            pregnancyPeriod: pregnancyPeriod,
-                          );
-
-                          if (context.mounted) {
-                            Navigator.pop(context);
-                          }
-                        } catch (e) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content:
-                                      Text("Failed to update profile: $e")),
-                            );
-                          }
-                        }
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 60,
-                    vertical: 12,
-                  ),
                 ),
-                child: profileEditViewModel.isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : Text(
-                        profileViewModel.isAmharic ? "አስቀምጥ" : "Save",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                          fontFamily: 'NotoSansEthiopic',
-                        ),
-                      ),
               ),
-            ],
-          ),
-        ),
       ),
     );
   }

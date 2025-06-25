@@ -6,9 +6,9 @@ class UserModel {
   final bool isNewUser;
   final String? gender;
   final String? profileImage;
+  final String? profileImageBlurHash;
   final String? fullName;
   final String? dateOfBirth;
-  final String? bio;
   final String? relationship;
   final int? pregnancyPeriod;
   final Map<String, dynamic>? media;
@@ -21,9 +21,9 @@ class UserModel {
     required this.isNewUser,
     this.gender,
     this.profileImage,
+    this.profileImageBlurHash,
     this.fullName,
     this.dateOfBirth,
-    this.bio,
     this.relationship,
     this.pregnancyPeriod,
     this.media,
@@ -38,9 +38,9 @@ class UserModel {
       isNewUser: json['new_user'] as bool,
       gender: json['gender'] as String?,
       profileImage: json['profile_image'] as String?,
+      profileImageBlurHash: json['profile_image_blur_hash'] as String?,
       fullName: json['full_name'] as String?,
       dateOfBirth: json['birth_date'] as String?,
-      bio: json['bio'] as String?,
       relationship: json['relationship'] as String?,
       pregnancyPeriod: json['pregnancy_period'] as int?,
       media: json['media'] as Map<String, dynamic>?,
@@ -56,9 +56,9 @@ class UserModel {
       'new_user': isNewUser,
       'gender': gender,
       'profile_image': profileImage,
+      'profile_image_blur_hash': profileImageBlurHash,
       'full_name': fullName,
       'date_of_birth': dateOfBirth,
-      'bio': bio,
       'relationship': relationship,
       'pregnancy_period': pregnancyPeriod,
       'media': media,
@@ -73,6 +73,7 @@ class UserModel {
     bool? isNewUser,
     String? gender,
     String? profileImage,
+    String? profileImageBlurHash,
     String? fullName,
     String? dateOfBirth,
     String? bio,
@@ -88,9 +89,9 @@ class UserModel {
       isNewUser: isNewUser ?? this.isNewUser,
       gender: gender ?? this.gender,
       profileImage: profileImage ?? this.profileImage,
+      profileImageBlurHash: profileImageBlurHash ?? this.profileImageBlurHash,
       fullName: fullName ?? this.fullName,
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
-      bio: bio ?? this.bio,
       relationship: relationship ?? this.relationship,
       pregnancyPeriod: pregnancyPeriod ?? this.pregnancyPeriod,
       media: media ?? this.media,

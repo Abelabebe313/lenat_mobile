@@ -4,12 +4,15 @@ import 'package:lenat_mobile/core/colors.dart';
 import 'package:lenat_mobile/core/router.dart';
 import 'package:lenat_mobile/view/auth/auth_viewmodel.dart';
 import 'package:lenat_mobile/view/content/content_feed_viewmodel.dart';
+import 'package:lenat_mobile/view/media/media_viewmodel.dart';
 import 'package:lenat_mobile/view/profile_edit/profile_edit_viewmodel.dart';
 import 'package:lenat_mobile/view/profile_setup/profile_setup_viewmodel.dart';
+import 'package:lenat_mobile/view/trivia/question/question_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:lenat_mobile/view/main/main_viewmodel.dart';
 import 'package:lenat_mobile/view/splash/splash_viewmodel.dart';
 import 'package:lenat_mobile/view/profile/profile_viewmodel.dart';
+import 'package:lenat_mobile/view/trivia/trivia_viewmodel.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -25,6 +28,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ProfileSetupViewModel()),
         ChangeNotifierProvider(create: (_) => ProfileEditViewModel()),
         ChangeNotifierProvider(create: (_) => ContentFeedViewModel()),
+        ChangeNotifierProvider(create: (_) => MediaViewModel()),
+        ChangeNotifierProvider(create: (_) => TriviaViewModel()),
+        ChangeNotifierProvider(create: (_) => QuestionViewModel()),
       ],
       child: GraphQLProvider(
         client: ValueNotifier(

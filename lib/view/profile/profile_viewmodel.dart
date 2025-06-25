@@ -89,4 +89,14 @@ class ProfileViewModel extends ChangeNotifier {
   String getLanguageToggleText() {
     return _isAmharic ? 'Switch to English' : 'አማርኛ ቋንቋ ላይ ቀይር';
   }
+
+  // Method to reset profile data when user logs out
+  void resetProfileData() {
+    _currentUser = null;
+    _uploadedImageUrl = null;
+    _isLoading = false;
+    _isUploading = false;
+    _isAmharic = true; // Reset to default language
+    notifyListeners();
+  }
 }

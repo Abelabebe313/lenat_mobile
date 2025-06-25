@@ -7,12 +7,14 @@ class ContentFeedItem extends StatelessWidget {
   final String imageUrl;
   final String description;
   final String blurHash;
+  final bool isLiked;
 
   const ContentFeedItem({
     super.key,
     required this.imageUrl,
     required this.description,
     required this.blurHash,
+    required this.isLiked,
   });
 
   @override
@@ -96,37 +98,17 @@ class ContentFeedItem extends StatelessWidget {
                           backgroundColor: Colors.white.withOpacity(0.8),
                           child: IconButton(
                             onPressed: () {},
-                            icon: HugeIcon(
-                              icon: HugeIcons.strokeRoundedFavourite,
-                              color: Colors.red,
-                              size: 24.0,
-                            ),
-                          ),
-                        ),
-                        CircleAvatar(
-                          radius: 24,
-                          backgroundColor: Colors.white.withOpacity(0.8),
-                          child: IconButton(
-                            onPressed: () {
-                              showModalBottomSheet(
-                                context: context,
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.vertical(
-                                      top: Radius.circular(16)),
-                                ),
-                                builder: (context) {
-                                  return const Padding(
-                                    padding: EdgeInsets.all(16.0),
-                                    child: Text('Comment dropdown goes here'),
-                                  );
-                                },
-                              );
-                            },
-                            icon: HugeIcon(
-                              icon: HugeIcons.strokeRoundedComment02,
-                              color: Colors.black,
-                              size: 24.0,
-                            ),
+                            icon: isLiked
+                                ? Icon(
+                                    Icons.favorite_rounded,
+                                    color: Colors.red,
+                                    size: 24.0,
+                                  )
+                                : HugeIcon(
+                                    icon: HugeIcons.strokeRoundedFavourite,
+                                    color: Colors.red,
+                                    size: 24.0,
+                                  ),
                           ),
                         ),
                         CircleAvatar(

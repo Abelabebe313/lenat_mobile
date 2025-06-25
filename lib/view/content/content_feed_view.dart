@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:lenat_mobile/view/profile/profile_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:lenat_mobile/view/content/widget/content_feed_item.dart';
 import 'package:lenat_mobile/view/content/content_feed_viewmodel.dart';
 
 class ContentFeedView extends StatefulWidget {
-  const ContentFeedView({super.key});
+  final String category;
+  const ContentFeedView({super.key, required this.category,});
 
   @override
   State<ContentFeedView> createState() => _ContentFeedViewState();
@@ -43,6 +45,8 @@ class _ContentFeedViewState extends State<ContentFeedView> {
 
   @override
   Widget build(BuildContext context) {
+    final profileViewModel = Provider.of<ProfileViewModel>(context);
+    
     return Scaffold(
       backgroundColor: Colors.white,
       body: Consumer<ContentFeedViewModel>(
@@ -65,8 +69,8 @@ class _ContentFeedViewState extends State<ContentFeedView> {
                     },
                     icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
                   ),
-                  title: const Text(
-                    "ወደ ኋላ ይመለሱ",
+                  title:  Text(
+                    widget.category,
                     style: TextStyle(
                       fontFamily: 'NotoSansEthiopic',
                       fontSize: 16,
@@ -139,6 +143,7 @@ class _ContentFeedViewState extends State<ContentFeedView> {
                           imageUrl: post.media.url,
                           description: post.description ?? '',
                           blurHash: post.media.blurHash,
+                          isLiked: post.isLiked ?? false,
                         );
                       },
                     ),

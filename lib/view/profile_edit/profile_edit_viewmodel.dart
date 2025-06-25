@@ -26,6 +26,7 @@ class ProfileEditViewModel extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     } catch (e) {
+      print('Error loading user data: $e');
       _isLoading = false;
       notifyListeners();
       rethrow;
@@ -60,7 +61,29 @@ class ProfileEditViewModel extends ChangeNotifier {
     } catch (e) {
       _isLoading = false;
       notifyListeners();
+
+      // Check if refresh token is expired
+      if (e.toString().contains('Token has expired')) {
+        // Logout and navigate to login
+        await _authService.logout();
+        throw Exception('REFRESH_TOKEN_EXPIRED');
+      }
+
+      print('Error updating profile: $e');
       rethrow;
     }
+  }
+
+  // Method to refresh profile data from main profile viewmodel
+  Future<void> refreshProfileData() async {
+    await loadUserData();
+  }
+
+  // Method to reset profile edit data when user logs out
+  void resetProfileEditData() {
+    _currentUser = null;
+    _selectedGender = "female";
+    _isLoading = false;
+    notifyListeners();
   }
 }

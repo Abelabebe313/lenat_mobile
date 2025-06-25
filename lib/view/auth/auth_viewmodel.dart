@@ -105,8 +105,26 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   Future<void> logout() async {
-    await _authService.logout();
-    _currentUser = null;
-    notifyListeners();
+    try {
+      // Clear all user data from memory
+      _currentUser = null;
+      _ssid = null;
+      _tsession = null;
+
+      // Clear secure storage and preferences
+      await _authService.logout();
+
+      // Notify listeners to update UI
+      notifyListeners();
+
+      print('AuthViewModel logout completed');
+    } catch (e) {
+      print('Error in AuthViewModel logout: $e');
+      // Even if there's an error, clear the in-memory data
+      _currentUser = null;
+      _ssid = null;
+      _tsession = null;
+      notifyListeners();
+    }
   }
 }

@@ -4,6 +4,7 @@ import 'package:lenat_mobile/services/feed_post_service.dart';
 import 'package:lenat_mobile/services/graphql_service.dart';
 import 'package:lenat_mobile/services/local_storage.dart';
 import 'package:lenat_mobile/services/minio_service.dart';
+import 'package:lenat_mobile/services/trivia_service.dart';
 
 final locator = GetIt.instance;
 
@@ -20,4 +21,5 @@ void setupLocator() {
         // useSSL: false,
       ));
   locator.registerLazySingleton<FeedPostService>(() => FeedPostService());
+  locator.registerLazySingleton<TriviaService>(() => TriviaService());
 }
