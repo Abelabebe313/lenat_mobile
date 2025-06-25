@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:lenat_mobile/core/colors.dart';
 import 'package:lenat_mobile/core/router.dart';
+import 'package:lenat_mobile/view/ai_chat/ai_chat_viewmodel.dart';
 import 'package:lenat_mobile/view/auth/auth_viewmodel.dart';
+import 'package:lenat_mobile/view/consult/consult_page_viewmodel.dart';
 import 'package:lenat_mobile/view/content/content_feed_viewmodel.dart';
 import 'package:lenat_mobile/view/media/media_viewmodel.dart';
 import 'package:lenat_mobile/view/profile_edit/profile_edit_viewmodel.dart';
@@ -31,6 +33,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => MediaViewModel()),
         ChangeNotifierProvider(create: (_) => TriviaViewModel()),
         ChangeNotifierProvider(create: (_) => QuestionViewModel()),
+        ChangeNotifierProvider(create: (_) => ConsultPageViewModel()),
+        ChangeNotifierProvider(create: (_) => AiChatViewModel()),
       ],
       child: GraphQLProvider(
         client: ValueNotifier(

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:lenat_mobile/core/colors.dart';
 import 'package:lenat_mobile/view/home/widget/premium_content_container.dart';
+import 'package:lenat_mobile/app/service_locator.dart';
+import 'package:lenat_mobile/services/auth_service.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -11,6 +13,22 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
+  bool isFemale = true;
+
+  void getUser() async {
+    final _authService = locator<AuthService>();
+    final currentUser = await _authService.getCurrentUser();
+    isFemale = currentUser!.gender! == "female";
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getUser();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,8 +37,8 @@ class _HomeViewState extends State<HomeView> {
         backgroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
-        title: const Text(
-          'እንደምን አደርሽ፣ አስቴር',
+        title: Text(
+          isFemale ? 'እንደምን አደርሽ' : "እንደምን አደርክ",
           style: TextStyle(
             color: Colors.black,
             fontFamily: 'NotoSansEthiopic',
@@ -238,7 +256,7 @@ class _HomeViewState extends State<HomeView> {
               top: 15.0,
             ),
             child: Text(
-              "Your Weekly Premium Picks",
+              "ለእርሶ የተመረጡ ልዩ መረጃዎች",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18.0,
