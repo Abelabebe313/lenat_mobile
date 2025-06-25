@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:lenat_mobile/core/colors.dart';
 import 'package:lenat_mobile/view/premium/premium_viewmodel.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PremiumView extends StatefulWidget {
   const PremiumView({super.key});
@@ -251,8 +252,10 @@ class _PremiumViewState extends State<PremiumView> {
               child: SizedBox(
                 width: MediaQuery.of(context).size.width * 0.7,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     // vm.proceedToPayment();
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('isPaid', true);
                     Chapa.paymentParameters(
                       context: context,
                       publicKey:
@@ -267,7 +270,7 @@ class _PremiumViewState extends State<PremiumView> {
                       title: 'Order Payment',
                       desc: 'Payment for order #12345',
                       nativeCheckout: true,
-                      namedRouteFallBack: '/premium',
+                      namedRouteFallBack: '/main',
                       showPaymentMethodsOnGridView: true,
                       availablePaymentMethods: [
                         'mpesa',

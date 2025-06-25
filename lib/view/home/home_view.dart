@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:lenat_mobile/core/colors.dart';
+import 'package:lenat_mobile/view/home/widget/premium_content_container.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -227,7 +228,45 @@ class _HomeViewState extends State<HomeView> {
                 ),
               ),
             ],
-          )
+          ),
+
+          // Premium Content
+          Padding(
+            padding: const EdgeInsets.only(
+              left: 12.0,
+              bottom: 10.0,
+              top: 15.0,
+            ),
+            child: Text(
+              "Your Weekly Premium Picks",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18.0,
+              ),
+            ),
+          ),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.symmetric(horizontal: 10.0),
+            child: Row(
+              spacing: 10.0,
+              children: [
+                PremiumContentContainer(
+                  image: "assets/images/image4.png",
+                  title: "Early care for your baby",
+                ),
+                PremiumContentContainer(
+                  image: "assets/images/image2.png",
+                  title: "Early care for your baby",
+                ),
+                PremiumContentContainer(
+                  image: "assets/images/image.png",
+                  title: "Early care for your baby",
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 200.0),
         ],
       ),
       floatingActionButton: FloatingActionButton(
