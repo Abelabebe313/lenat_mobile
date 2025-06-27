@@ -1,6 +1,10 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AiChatViewModel extends ChangeNotifier {
   String modelName = "";
@@ -9,6 +13,7 @@ class AiChatViewModel extends ChangeNotifier {
   late ChatSession chat;
   ScrollController scrollController = ScrollController();
   TextEditingController userMessageController = TextEditingController();
+  String? imageBase64;
 
   String getAPIKeyQuery = r'''
     query GetAPIKey {
@@ -63,32 +68,32 @@ class AiChatViewModel extends ChangeNotifier {
   void sendTextToAI() async {
     // Clean User Input
     String userInput = userMessageController.text.trim();
-    print(userInput);
     userMessageController.clear();
 
+    String formattedUserInput = userInput +
+        (imageBase64 != null ? ". Associated Image: $imageBase64" : "");
+
     // Add to Chat History
-    addToChatHistory("User", userInput);
+    addToChatHistory("User", userInput, imageBase64!);
 
     // Response
-    final content = Content.text(userInput);
+    final content = Content.text(formattedUserInput);
     var response = await chat.sendMessage(content);
     String aiResponse = response.text!;
 
-    print(response);
-    print(aiResponse);
-
     // Add to Chat History
-    addToChatHistory("AI", aiResponse.toString().trim());
+    addToChatHistory("AI", aiResponse.toString().trim(), "");
   }
 
   // Add to Chat History
-  void addToChatHistory(String from, String content) {
+  void addToChatHistory(String from, String content, String image) {
     if (from == "AI") {
       chatHistory.removeLast();
     }
     chatHistory.add({
       "from": from,
       "content": content,
+      "image": image,
     });
     if (from == "User") {
       chatHistory.add({
@@ -102,5 +107,13 @@ class AiChatViewModel extends ChangeNotifier {
   void clearChat() async {
     chatHistory.clear();
     notifyListeners();
+  }
+
+  Future<String?> xFileToBase64(XFile? file) async {
+    if (file == null) return null;
+
+    Uint8List bytes = await file.readAsBytes();
+    String base64Image = base64Encode(bytes);
+    return base64Image;
   }
 }

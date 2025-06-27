@@ -1,4 +1,9 @@
+import 'dart:convert';
+
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_image_viewer/easy_image_viewer.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:lenat_mobile/core/colors.dart';
 import 'package:lenat_mobile/view/ai_chat/ai_chat_viewmodel.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -79,47 +84,92 @@ class _AIChatViewState extends State<AIChatView> {
                           final item = viewModel.chatHistory[index];
                           final isFromUser = item['from'] == 'User';
                           final isSystem = item['from'] == 'System';
-                          return Row(
-                            mainAxisAlignment: isFromUser
-                                ? MainAxisAlignment.end
-                                : MainAxisAlignment.start,
+                          return Column(
+                            crossAxisAlignment: isFromUser
+                                ? CrossAxisAlignment.end
+                                : CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                constraints: BoxConstraints(
-                                  minWidth: 100.0,
-                                  maxWidth:
-                                      MediaQuery.of(context).size.width * 0.75,
-                                ),
-                                margin: EdgeInsets.symmetric(
-                                  horizontal: isFromUser ? 15.0 : 5.0,
-                                  vertical: 10.0,
-                                ),
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 16.0,
-                                  vertical: 8.0,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isFromUser
-                                      ? Primary
-                                      : Primary.withAlpha(50),
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                                child: isSystem
-                                    ? LoadingAnimationWidget.staggeredDotsWave(
-                                        color: Colors.black,
-                                        size: 18.0,
-                                      )
-                                    : Text(
-                                        item['content'],
-                                        maxLines: 5,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          color: isFromUser
-                                              ? Colors.white
-                                              : Colors.black,
-                                          fontSize: 16.0,
+                              // Media
+                              isFromUser &&
+                                      viewModel.chatHistory[index]["image"] !=
+                                          null &&
+                                      viewModel.chatHistory[index]["image"] !=
+                                          ""
+                                  ? GestureDetector(
+                                      onTap: () {
+                                        final imageProvider = MemoryImage(
+                                          base64Decode(
+                                            viewModel.chatHistory[index]
+                                                ["image"],
+                                          ),
+                                        );
+                                        showImageViewer(context, imageProvider,
+                                            onViewerDismissed: () {
+                                          print("dismissed");
+                                        });
+                                      },
+                                      child: Container(
+                                        width: 100.0,
+                                        margin: EdgeInsets.only(right: 20.0),
+                                        clipBehavior: Clip.hardEdge,
+                                        decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(20.0)),
+                                        child: Image.memory(
+                                          base64Decode(
+                                            viewModel.chatHistory[index]
+                                                ["image"],
+                                          ),
                                         ),
                                       ),
+                                    )
+                                  : Container(),
+                              // Text
+                              Row(
+                                mainAxisAlignment: isFromUser
+                                    ? MainAxisAlignment.end
+                                    : MainAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    constraints: BoxConstraints(
+                                      minWidth: 100.0,
+                                      maxWidth:
+                                          MediaQuery.of(context).size.width *
+                                              0.75,
+                                    ),
+                                    margin: EdgeInsets.symmetric(
+                                      horizontal: isFromUser ? 15.0 : 5.0,
+                                      vertical: 10.0,
+                                    ),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 16.0,
+                                      vertical: 8.0,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isFromUser
+                                          ? Primary
+                                          : Primary.withAlpha(50),
+                                      borderRadius: BorderRadius.circular(10.0),
+                                    ),
+                                    child: isSystem
+                                        ? LoadingAnimationWidget
+                                            .staggeredDotsWave(
+                                            color: Colors.black,
+                                            size: 18.0,
+                                          )
+                                        : Text(
+                                            item['content'],
+                                            maxLines: 5,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              color: isFromUser
+                                                  ? Colors.white
+                                                  : Colors.black,
+                                              fontSize: 16.0,
+                                            ),
+                                          ),
+                                  ),
+                                ],
                               ),
                             ],
                           );
@@ -135,17 +185,23 @@ class _AIChatViewState extends State<AIChatView> {
                 ),
                 child: Row(
                   children: [
-                    // Padding(
-                    //   padding: const EdgeInsets.only(right: 0.0),
-                    //   child: IconButton(
-                    //     onPressed: () {
-                    //       // apiKey == "" ? () {} : chatWithAI();
-                    //     },
-                    //     icon: Icon(
-                    //       Icons.attach_file,
-                    //     ),
-                    //   ),
-                    // ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 0.0),
+                      child: IconButton(
+                        onPressed: () async {
+                          // apiKey == "" ? () {} : chatWithAI();
+                          var imagePicker = ImagePicker();
+                          XFile? image = await imagePicker.pickImage(
+                            source: ImageSource.gallery,
+                          );
+                          viewModel.imageBase64 =
+                              await viewModel.xFileToBase64(image);
+                        },
+                        icon: Icon(
+                          Icons.attach_file,
+                        ),
+                      ),
+                    ),
                     Expanded(
                       child: Container(
                         padding: const EdgeInsets.only(

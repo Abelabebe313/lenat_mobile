@@ -1,16 +1,18 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 
 class Blog extends StatefulWidget {
   const Blog({
     super.key,
     required this.image,
     required this.title,
-    required this.body,
+    required this.content,
   });
 
   final String image;
   final String title;
-  final String body;
+  final String content;
 
   @override
   State<Blog> createState() => _BlogState();
@@ -34,17 +36,23 @@ class _BlogState extends State<Blog> {
           //     fontWeight: FontWeight.bold,
           //   ),
           // ),
-          Image.asset(
-            widget.image,
+          CachedNetworkImage(
+            imageUrl: widget.image,
             fit: BoxFit.cover,
+            errorWidget: (context, state, idk) => Image.asset(
+              "assets/images/image.png",
+              fit: BoxFit.cover,
+            ),
           ),
           SizedBox(height: 10.0),
-          Text(
-            "Taking care of kids is a rewarding yet demanding responsibility that requires patience, attentiveness, and love. Providing a safe and nurturing environment is essential for their physical and emotional well-being. This includes ensuring they have nutritious meals, adequate sleep, and regular medical check-ups. Beyond meeting basic needs, engaging with children through play, conversation, and educational activities helps stimulate their development and builds a strong bond of trust and security. Consistency in routines and clear boundaries also contribute to a child's sense of stability and understanding of acceptable behavior.",
-          ),
-          SizedBox(height: 10.0),
-          Text(
-            "Emotional support is equally important in child care. Children need encouragement and positive reinforcement to build self-esteem and resilience. Listening to their thoughts and feelings without judgment fosters open communication and helps them navigate challenges. Additionally, role modeling respectful behavior and empathy teaches valuable social skills. Taking care of kids is not just about meeting their immediate needs but also about guiding them to become confident, compassionate, and well-rounded individuals. With dedication and love, caregivers can make a profound difference in a child’s life and future.",
+
+          // Text(widget.content),
+
+          Html(
+            data: widget.content,
+            // style: {
+            //   "body": Style(fontSize: FontSize(100.0), color: Colors.amber),
+            // },
           ),
         ],
       ),

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:lenat_mobile/view/blog/blog.dart';
 import 'package:lenat_mobile/view/premium/premium_view.dart';
@@ -8,10 +9,12 @@ class PremiumContentContainer extends StatefulWidget {
     super.key,
     required this.image,
     required this.title,
+    required this.content,
   });
 
   final String image;
   final String title;
+  final String content;
 
   @override
   State<PremiumContentContainer> createState() =>
@@ -51,9 +54,9 @@ class _PremiumContentContainerState extends State<PremiumContentContainer> {
           MaterialPageRoute(
             builder: (context) => isPaid
                 ? Blog(
-                    body: "",
                     image: widget.image,
                     title: widget.title,
+                    content: widget.content,
                   )
                 : PremiumView(),
           ),
@@ -63,6 +66,7 @@ class _PremiumContentContainerState extends State<PremiumContentContainer> {
         width: 240.0,
         height: 240.0,
         clipBehavior: Clip.hardEdge,
+        margin: EdgeInsets.only(right: 10.0),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20.0),
         ),
@@ -71,9 +75,17 @@ class _PremiumContentContainerState extends State<PremiumContentContainer> {
           children: [
             Align(
               alignment: Alignment.topCenter,
-              child: Image.asset(
-                widget.image,
+              child: CachedNetworkImage(
+                imageUrl: widget.image,
                 fit: BoxFit.cover,
+                width: 240.0,
+                height: 240.0,
+                errorWidget: (context, state, idk) => Image.asset(
+                  "assets/images/image.png",
+                  fit: BoxFit.cover,
+                  width: 240.0,
+                  height: 240.0,
+                ),
               ),
             ),
             isPaid
@@ -101,7 +113,7 @@ class _PremiumContentContainerState extends State<PremiumContentContainer> {
                   horizontal: 6.0,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.black.withAlpha(50),
+                  color: Colors.black.withAlpha(115),
                   border: Border.all(color: Colors.transparent),
                   // borderRadius: BorderRadius.circular(20.0),
                 ),
