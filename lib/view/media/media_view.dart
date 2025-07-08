@@ -5,6 +5,7 @@ import 'package:lenat_mobile/view/content/content_feed_view.dart';
 import 'package:lenat_mobile/view/media/media_viewmodel.dart';
 import 'package:lenat_mobile/view/profile/profile_viewmodel.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class MediaView extends StatefulWidget {
   const MediaView({super.key});
@@ -13,11 +14,102 @@ class MediaView extends StatefulWidget {
   State<MediaView> createState() => _MediaViewState();
 }
 
+List<Map<String, dynamic>> _getmediaCategories(bool isAmharic) {
+  return [
+    {
+      'title': isAmharic ? "ቅድመ ወሊድ" : 'Prenatal Stage',
+      'image': 'assets/images/first_month.png',
+      'backend_category': 'Prenatal_Stage',
+    },
+    {
+      'title': isAmharic ? "የመጀመርያው 3 ወራት" : 'First Trimester',
+      'image': 'assets/images/for_woman.png',
+      'backend_category': 'First_Trimester',
+    },
+    {
+      'title': isAmharic ? "ሁለተኛው 3 ወራት" : 'Second Trimester',
+      'image': 'assets/images/for_kids.png',
+      'backend_category': 'Second_Trimester',
+    },
+    {
+      'title': isAmharic ? "ሶስተኛው 3 ወራት" : 'Third Trimester',
+      'image': 'assets/images/first_month.png',
+      'backend_category': 'Third_Trimester',
+    },
+    {
+      'title': isAmharic ? "የመውለጃ ጊዜ" : 'Labor and Delivery',
+      'image': 'assets/images/for_woman.png',
+      'backend_category': 'Labor_and_Delivery',
+    },
+    {
+      'title': isAmharic ? "ድህረ ወሊድ" : 'Postpartum',
+      'image': 'assets/images/for_kids.png',
+      'backend_category': 'Postpartum',
+    },
+    {
+      'title': isAmharic ? "የልጅ አስተዳደግ" : 'Child Growth',
+      'image': 'assets/images/for_woman.png',
+      'backend_category': 'Child_Growth',
+    },
+    {
+      'title': isAmharic ? "ለአባት" : 'Fatherhood',
+      'image': 'assets/images/for_kids.png',
+      'backend_category': 'Fatherhood',
+    },
+  ];
+}
+
+// final List<Map<String, String>> mediaCategories = [
+//   {
+//     'title': 'Prenatal Stage',
+//     'image': 'assets/images/first_month.png',
+//   },
+//   {
+//     'title': 'First Trimester',
+//     'image': 'assets/images/for_woman.png',
+//   },
+//   {
+//     'title': 'Second Trimester',
+//     'image': 'assets/images/for_kids.png',
+//   },
+//   {
+//     'title': 'Third Trimester',
+//     'image': 'assets/images/first_month.png',
+//   },
+//   {
+//     'title': 'Labor and Delivery',
+//     'image': 'assets/images/for_woman.png',
+//   },
+//   {
+//     'title': 'Postpartum',
+//     'image': 'assets/images/for_kids.png',
+//   },
+//   {
+//     'title': 'Child Growth',
+//     'image': 'assets/images/for_woman.png',
+//   },
+//   {
+//     'title': 'Fatherhood',
+//     'image': 'assets/images/for_kids.png',
+//   },
+// ];
+
 class _MediaViewState extends State<MediaView> {
   @override
+  void initState() {
+    super.initState();
+    // Fetch bookmarked posts when the view initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<MediaViewModel>(context, listen: false)
+          .fetchBookmarkedPosts();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final profileViewModel = Provider.of<ProfileViewModel>(context);
     final mediaViewModel = Provider.of<MediaViewModel>(context);
+    final profileViewModel = Provider.of<ProfileViewModel>(context);
+    final mediaCategories = _getmediaCategories(profileViewModel.isAmharic);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -54,10 +146,9 @@ class _MediaViewState extends State<MediaView> {
                 height: 200,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  itemCount: mediaViewModel.mediaCategories.length,
+                  itemCount: mediaCategories.length,
                   itemBuilder: (context, index) {
-                    return _mediaCatagotyCard(
-                        mediaViewModel.mediaCategories[index]);
+                    return _mediaCatagotyCard(mediaCategories[index]);
                   },
                 ),
               ),
@@ -88,21 +179,48 @@ class _MediaViewState extends State<MediaView> {
                 ),
               ),
               const SizedBox(height: 16),
-              SizedBox(
-                height: 200,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: 10,
-                  itemBuilder: (context, index) {
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(context, '/content_feed');
-                      },
-                      child: _mediaFavoriteCard(),
-                    );
-                  },
-                ),
-              ),
+              mediaViewModel.isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : mediaViewModel.bookmarkedPosts.isEmpty
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 30.0),
+                            child: Text(
+                              profileViewModel.isAmharic
+                                  ? "ምንም የተመዘገበ ይዘት የለም"
+                                  : "No bookmarked content yet",
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey,
+                                fontFamily: 'NotoSansEthiopic',
+                              ),
+                            ),
+                          ),
+                        )
+                      : SizedBox(
+                          height: 200,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: mediaViewModel.bookmarkedPosts.length,
+                            itemBuilder: (context, index) {
+                              final post =
+                                  mediaViewModel.bookmarkedPosts[index];
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ContentFeedView(
+                                        category: post.category,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: _mediaFavoriteCard(post),
+                              );
+                            },
+                          ),
+                        ),
             ],
           ),
         ),
@@ -183,7 +301,7 @@ class _MediaViewState extends State<MediaView> {
     );
   }
 
-  Widget _mediaCatagotyCard(Map<String, String> category) {
+  Widget _mediaCatagotyCard(Map<String, dynamic> category) {
     return GestureDetector(
       onTap: () {
         // Navigator.pushNamed(context, '/content_feed');
@@ -191,7 +309,7 @@ class _MediaViewState extends State<MediaView> {
           context,
           MaterialPageRoute(
             builder: (context) => ContentFeedView(
-              category: category['title'] ?? "Content Feed",
+              category: category['backend_category'] ?? "Content Feed",
             ),
           ),
         );
@@ -223,7 +341,7 @@ class _MediaViewState extends State<MediaView> {
               right: 0,
               child: Center(
                 child: Container(
-                    width: 140,
+                    width: 170,
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: Color(0xFFD5E5F7),
@@ -236,7 +354,7 @@ class _MediaViewState extends State<MediaView> {
                           color: Primary,
                           fontFamily: 'NotoSansEthiopic',
                           fontWeight: FontWeight.w500,
-                          fontSize: 14,
+                          fontSize: 12,
                         ),
                       ),
                     )),
@@ -248,7 +366,32 @@ class _MediaViewState extends State<MediaView> {
     );
   }
 
-  Widget _mediaFavoriteCard() {
+  Widget _mediaFavoriteCard([dynamic post]) {
+    if (post == null) {
+      // Fallback to default if no post data
+      return Container(
+        width: 200,
+        margin: const EdgeInsets.only(right: 16),
+        decoration: BoxDecoration(
+          color: Color(0xFFFBFBFB),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.asset(
+              'assets/images/login-image.png',
+              fit: BoxFit.cover,
+              width: 200,
+              height: 200,
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Display actual post data
     return Container(
       width: 200,
       margin: const EdgeInsets.only(right: 16),
@@ -260,12 +403,29 @@ class _MediaViewState extends State<MediaView> {
         padding: const EdgeInsets.all(16),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
-          child: Image.asset(
-            'assets/images/login-image.png',
-            fit: BoxFit.cover,
-            width: 200,
-            height: 200,
-          ),
+          child: post.media.url.isNotEmpty
+              ? CachedNetworkImage(
+                  imageUrl: post.media.url,
+                  fit: BoxFit.cover,
+                  width: 200,
+                  height: 200,
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey[300],
+                    child: const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    color: Colors.grey[300],
+                    child: const Icon(Icons.error),
+                  ),
+                )
+              : Image.asset(
+                  'assets/images/login-image.png',
+                  fit: BoxFit.cover,
+                  width: 200,
+                  height: 200,
+                ),
         ),
       ),
     );

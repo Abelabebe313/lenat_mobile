@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:lenat_mobile/services/auth_service.dart';
 import '../../app/service_locator.dart';
 import 'dart:convert';
+import 'package:flutter/material.dart';
 
 class GraphQLService {
   static const String _baseUrl = 'http://92.205.167.80:8080/v1/graphql';
@@ -26,8 +27,6 @@ class GraphQLService {
   Future<GraphQLClient> _getClient({String? role}) async {
     final token = await _secureStorage.read(key: 'access_token');
     final refreshToken = await _secureStorage.read(key: 'refresh_token');
-    print("token: $token");
-    print("refreshToken: $refreshToken");
     // If no token is present, use unauthenticated client
     if (token == null) {
       return _getUnauthenticatedClient();
@@ -81,19 +80,111 @@ class GraphQLService {
     );
   }
 
-  // Helper method to refresh token
-  Future<String?> _refreshToken() async {
-    try {
-      final refreshToken = await _secureStorage.read(key: 'refresh_token');
+  static Future<GraphQLClient> getClientWithOutRoleandUserId() async {
+    final service = GraphQLService();
+    return await service._getClientWithOutRoleandUserId();
+  }
 
-      if (refreshToken == null) {
-        throw Exception('No refresh token available');
+  Future<GraphQLClient> _getClientWithOutRoleandUserId() async {
+    final token = await _secureStorage.read(key: 'access_token');
+    final refreshToken = await _secureStorage.read(key: 'refresh_token');
+    if (token == null) {
+      return _getUnauthenticatedClient();
+    }
+
+    // Get user data to extract user ID
+    final userDataStr = await _secureStorage.read(key: 'user_data');
+    if (userDataStr == null) {
+      throw Exception('User data not found');
+    }
+    final userData = jsonDecode(userDataStr) as Map<String, dynamic>;
+    final userId = userData['id'] as String;
+
+    final Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    final HttpLink httpLink = HttpLink(
+      _baseUrl,
+      defaultHeaders: headers,
+    );
+
+    return GraphQLClient(
+      link: httpLink,
+      cache: GraphQLCache(),
+    );
+  }
+
+  static Future<GraphQLClient> getClientWithOutRole() async {
+    final service = GraphQLService();
+    return await service._getClientWithOutRole();
+  }
+
+  Future<GraphQLClient> _getClientWithOutRole() async {
+    final token = await _secureStorage.read(key: 'access_token');
+    final refreshToken = await _secureStorage.read(key: 'refresh_token');
+
+    if (token == null) {
+      return _getUnauthenticatedClient();
+    }
+
+    // Get user data to extract user ID
+    final userDataStr = await _secureStorage.read(key: 'user_data');
+    if (userDataStr == null) {
+      throw Exception('User data not found');
+    }
+    final userData = jsonDecode(userDataStr) as Map<String, dynamic>;
+    final userId = userData['id'] as String;
+
+    final Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+      'x-hasura-user-id': userId,
+    };
+
+    final HttpLink httpLink = HttpLink(
+      _baseUrl,
+      defaultHeaders: headers,
+    );
+
+    return GraphQLClient(
+      link: httpLink,
+      cache: GraphQLCache(),
+    );
+  }
+
+  // Simple method to refresh tokens
+  static Future<bool> refreshTokens() async {
+    try {
+      final secureStorage = const FlutterSecureStorage();
+      final refreshToken = await secureStorage.read(key: 'refresh_token');
+      final accessToken = await secureStorage.read(key: 'access_token');
+
+      if (refreshToken == null || accessToken == null) {
+        print('No refresh token or access token available');
+        return false;
       }
 
-      final client = await _getUnauthenticatedClient();
+      // Create a client specifically for token refresh with all required headers
+      final Map<String, String> headers = {
+        'Content-Type': 'application/json',
+        // 'Authorization': 'Bearer $accessToken',
+      };
+
+      final HttpLink httpLink = HttpLink(
+        _baseUrl,
+        defaultHeaders: headers,
+      );
+
+      final client = GraphQLClient(
+        link: httpLink,
+        cache: GraphQLCache(),
+      );
+
       const mutation = r'''
-        mutation($refresh_token: String!) {
-          auth_refresh_tokens(refresh_token: $refresh_token) {
+        mutation RefreshTokens($refreshToken: String!) {
+          auth_refresh_tokens(refresh_token: $refreshToken) {
             access_token
             refresh_token
           }
@@ -103,71 +194,142 @@ class GraphQLService {
       final result = await client.mutate(
         MutationOptions(
           document: gql(mutation),
-          variables: {'refresh_token': refreshToken},
+          variables: {'refreshToken': refreshToken},
         ),
       );
 
       if (result.hasException) {
-        final message = result.exception?.graphqlErrors.first.message ??
-            'Failed to refresh token';
-
-        if (message.contains('Token has expired')) {
-          print('❌ Refresh token has expired. Logging out...');
-          await _secureStorage.deleteAll();
-          throw Exception('Token has expired');
+        if (result.exception?.graphqlErrors.isNotEmpty ?? false) {
+          print(
+              'GraphQL errors: ${result.exception?.graphqlErrors.map((e) => "${e.message} (${e.path})")}');
         }
-
-        throw Exception(message);
+        if (result.exception?.linkException != null) {
+          print('Link exception: ${result.exception?.linkException}');
+        }
+        return false;
       }
 
-      final data = result.data?['auth_refresh_tokens'];
-      if (data != null) {
-        await _secureStorage.write(
-            key: 'access_token', value: data['access_token']);
-        await _secureStorage.write(
-            key: 'refresh_token', value: data['refresh_token']);
-        return data['access_token'];
+      if (result.data == null || result.data!['auth_refresh_tokens'] == null) {
+        print('Token refresh returned null data: ${result.data}');
+        return false;
       }
 
-      return null;
+      final newAccessToken =
+          result.data?['auth_refresh_tokens']['access_token'];
+      final newRefreshToken =
+          result.data?['auth_refresh_tokens']['refresh_token'];
+
+      if (newAccessToken == null || newRefreshToken == null) {
+        print(
+            'Invalid token data received: ${result.data?['auth_refresh_tokens']}');
+        return false;
+      }
+
+      // Store the new tokens - both must be updated since refresh token is one-time use
+      await secureStorage.write(key: 'access_token', value: newAccessToken);
+      await secureStorage.write(key: 'refresh_token', value: newRefreshToken);
+
+      return true;
     } catch (e) {
-      print('Error refreshing token: $e');
+      print('Error refreshing tokens: $e');
+      return false;
+    }
+  }
+
+  // Check if a result has authentication errors
+  static bool hasAuthError(QueryResult result) {
+    if (!result.hasException) return false;
+
+    // Check for common authentication error messages
+    final hasGraphQLAuthError = result.exception?.graphqlErrors.any((error) =>
+            error.message.contains('JWT') ||
+            error.message.contains('token') ||
+            error.message.contains('Token') ||
+            error.message.contains('authentication') ||
+            error.message.contains('Authentication') ||
+            error.message.contains('unauthorized') ||
+            error.message.contains('Unauthorized') ||
+            error.message.contains('expired') ||
+            error.message.contains('Expired')) ??
+        false;
+
+    // Check for network errors that might be auth-related
+    final hasNetworkAuthError = result.exception?.linkException != null &&
+        result.exception!.linkException.toString().contains('401');
+
+    return hasGraphQLAuthError || hasNetworkAuthError;
+  }
+
+  // Helper to redirect to login
+  static void redirectToLogin(BuildContext context) {
+    // Clear tokens
+    const FlutterSecureStorage().deleteAll();
+
+    // Navigate to login and clear the stack
+    Navigator.of(context, rootNavigator: true)
+        .pushNamedAndRemoveUntil('/login', (_) => false);
+  }
+}
+
+extension GraphQLClientExtension on GraphQLClient {
+  // Execute a query with token refresh if needed
+  Future<QueryResult> queryWithTokenRefresh(
+    QueryOptions options, {
+    BuildContext? context,
+  }) async {
+    try {
+      // First attempt
+      final result = await this.query(options);
+
+      // Check for auth errors
+      if (GraphQLService.hasAuthError(result)) {
+        // Try to refresh the token
+        final refreshed = await GraphQLService.refreshTokens();
+
+        if (refreshed) {
+          // If refresh succeeded, get a new client and retry
+          final newClient = await GraphQLService.getClient();
+          return await newClient.query(options);
+        } else {
+          if (context != null) {
+            GraphQLService.redirectToLogin(context);
+          }
+        }
+      }
+
+      return result;
+    } catch (e) {
+      print('Error in queryWithTokenRefresh: $e');
       rethrow;
     }
   }
 
-  // Helper method to execute operations with automatic token refresh
-  static Future<QueryResult> executeWithTokenRefresh(
-    Future<QueryResult> Function() operation,
-  ) async {
-    final service = GraphQLService();
-
+  // Execute a mutation with token refresh if needed
+  Future<QueryResult> mutationWithTokenRefresh(
+    MutationOptions options, {
+    BuildContext? context,
+  }) async {
     try {
-      return await operation();
-    } catch (e) {
-      // Check if it's a JWT expired error
-      if (e.toString().contains('JWTExpired') ||
-          e.toString().contains('Could not verify JWT')) {
-        print('JWT expired, refreshing token...');
+      // First attempt
+      final result = await this.mutate(options);
 
-        try {
-          // Try to refresh the token
-          final newToken = await service._refreshToken();
-          if (newToken != null) {
-            print('Token refreshed successfully, retrying operation...');
-            // Retry the operation with the new token
-            return await operation();
-          } else {
-            throw Exception('Failed to refresh token');
+      // Check for auth errors
+      if (GraphQLService.hasAuthError(result)) {
+        final refreshed = await GraphQLService.refreshTokens();
+
+        if (refreshed) {
+          // If refresh succeeded, get a new client and retry
+          final newClient = await GraphQLService.getClient();
+          return await newClient.mutate(options);
+        } else {
+          if (context != null) {
+            GraphQLService.redirectToLogin(context);
           }
-        } catch (refreshError) {
-          // Check if refresh token is expired
-          if (refreshError.toString().contains('Token has expired')) {
-            throw Exception('Token has expired');
-          }
-          rethrow;
         }
       }
+
+      return result;
+    } catch (e) {
       rethrow;
     }
   }

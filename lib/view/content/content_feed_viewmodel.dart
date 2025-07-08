@@ -11,6 +11,7 @@ class ContentFeedViewModel extends ChangeNotifier {
   bool _hasError = false;
   String? _errorMessage;
   bool _hasMorePosts = true;
+  String? _currentCategory;
 
   List<FeedPostModel> get posts => _posts;
   bool get isLoading => _isLoading;
@@ -18,6 +19,14 @@ class ContentFeedViewModel extends ChangeNotifier {
   bool get hasError => _hasError;
   String? get errorMessage => _errorMessage;
   bool get hasMorePosts => _hasMorePosts;
+  String? get currentCategory => _currentCategory;
+
+  void setCategory(String? category) {
+    if (_currentCategory != category) {
+      _currentCategory = category;
+      loadInitialPosts();
+    }
+  }
 
   Future<void> loadInitialPosts() async {
     if (_isLoading) return;
@@ -28,7 +37,8 @@ class ContentFeedViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final newPosts = await _feedService.getFeedPosts();
+      final newPosts =
+          await _feedService.getFeedPosts(category: _currentCategory);
       _posts = newPosts;
       _hasMorePosts = newPosts.isNotEmpty;
     } catch (e) {
@@ -47,7 +57,8 @@ class ContentFeedViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final newPosts = await _feedService.getFeedPosts();
+      final newPosts =
+          await _feedService.getFeedPosts(category: _currentCategory);
       if (newPosts.isEmpty) {
         _hasMorePosts = false;
       } else {
@@ -71,7 +82,8 @@ class ContentFeedViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final newPosts = await _feedService.getFeedPosts(refresh: true);
+      final newPosts = await _feedService.getFeedPosts(
+          refresh: true, category: _currentCategory);
       _posts = newPosts;
       _hasMorePosts = newPosts.isNotEmpty;
     } catch (e) {

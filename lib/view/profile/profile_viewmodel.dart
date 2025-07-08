@@ -55,6 +55,33 @@ class ProfileViewModel extends ChangeNotifier {
     }
   }
 
+  // Refresh user data from server (for pull-to-refresh and after profile updates)
+  Future<void> refreshUserData() async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      final currentUser = await _authService.getCurrentUser();
+      if (currentUser != null) {
+        // Fetch fresh data from server
+        final freshUserData =
+            await _authService.fetchCompleteUserData(currentUser.id!);
+        if (freshUserData != null) {
+          _currentUser = freshUserData;
+          print('✅ ProfileViewModel: Profile data refreshed from server');
+        }
+      }
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _isLoading = false;
+      notifyListeners();
+      print('Error refreshing user data: $e');
+      rethrow;
+    }
+  }
+
   Future<void> uploadProfileImage(File imageFile) async {
     try {
       _isUploading = true;

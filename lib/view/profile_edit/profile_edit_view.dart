@@ -39,6 +39,7 @@ class _ProfileEditViewState extends State<ProfileEditView> {
   late String selectedDay;
   late String selectedMonth;
   late String selectedYear;
+  bool _hasInitialized = false;
 
   @override
   void initState() {
@@ -46,14 +47,24 @@ class _ProfileEditViewState extends State<ProfileEditView> {
     selectedDay = days[0];
     selectedMonth = months[0];
     selectedYear = years[0];
+    _hasInitialized = false;
 
-    // Load user data when view is initialized
+    // Set up the callback for profile refresh and load user data
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final viewModel =
+      final profileEditViewModel =
           Provider.of<ProfileEditViewModel>(context, listen: false);
-      await viewModel.loadUserData();
-      if (viewModel.currentUser != null) {
-        _initializeFields(viewModel);
+      final profileViewModel =
+          Provider.of<ProfileViewModel>(context, listen: false);
+
+      // Set callback to refresh profile data
+      profileEditViewModel.setProfileUpdateCallback(() async {
+        await profileViewModel.refreshUserData();
+      });
+
+      // Load user data when view is initialized
+      await profileEditViewModel.loadUserData();
+      if (profileEditViewModel.currentUser != null) {
+        _initializeFields(profileEditViewModel);
       }
     });
   }
@@ -582,15 +593,40 @@ class _ProfileEditViewState extends State<ProfileEditView> {
                                 }
                               } catch (e) {
                                 if (context.mounted) {
-                                  // Check if refresh token is expired
+                                  // Check for specific error types
                                   if (e
                                       .toString()
-                                      .contains('Token has expired')) {
+                                      .contains('SESSION_EXPIRED')) {
                                     // Navigate to login page
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          profileViewModel.isAmharic
+                                              ? "የእርስዎ ክፍለ-ጊዜ አልቋል፣ እባክዎ እንደገና ይግቡ"
+                                              : "Your session has expired. Please login again.",
+                                        ),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
                                     Navigator.of(context)
                                         .pushNamedAndRemoveUntil(
                                       '/login',
                                       (route) => false,
+                                    );
+                                    return;
+                                  } else if (e
+                                      .toString()
+                                      .contains('RETRY_OPERATION')) {
+                                    // Tokens were refreshed, prompt user to try again
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          profileViewModel.isAmharic
+                                              ? "እባክዎ እንደገና ይሞክሩ"
+                                              : "Please try again",
+                                        ),
+                                        backgroundColor: Colors.orange,
+                                      ),
                                     );
                                     return;
                                   }

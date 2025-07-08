@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lenat_mobile/app/service_locator.dart';
 import 'package:lenat_mobile/services/auth_service.dart';
 import 'package:lenat_mobile/models/user_model.dart';
+import 'package:lenat_mobile/services/graphql_service.dart';
 
 class ProfileEditViewModel extends ChangeNotifier {
   final _authService = locator<AuthService>();
@@ -9,9 +10,17 @@ class ProfileEditViewModel extends ChangeNotifier {
   bool _isLoading = false;
   UserModel? _currentUser;
 
+  // Callback function to refresh profile data
+  Function? _onProfileUpdated;
+
   String get selectedGender => _selectedGender;
   bool get isLoading => _isLoading;
   UserModel? get currentUser => _currentUser;
+
+  // Set callback for profile refresh
+  void setProfileUpdateCallback(Function callback) {
+    _onProfileUpdated = callback;
+  }
 
   Future<void> loadUserData() async {
     try {
@@ -53,8 +62,13 @@ class ProfileEditViewModel extends ChangeNotifier {
         pregnancyPeriod: pregnancyPeriod,
       );
 
-      // Reload user data after update
-      await loadUserData();
+      // Fetch fresh data from server after successful update
+      await _refreshUserDataFromServer();
+
+      // Call the callback to refresh profile screen data
+      if (_onProfileUpdated != null) {
+        _onProfileUpdated!();
+      }
 
       _isLoading = false;
       notifyListeners();
@@ -62,15 +76,54 @@ class ProfileEditViewModel extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
 
-      // Check if refresh token is expired
-      if (e.toString().contains('Token has expired')) {
-        // Logout and navigate to login
-        await _authService.logout();
-        throw Exception('REFRESH_TOKEN_EXPIRED');
+      // Check for various token/auth error messages
+      final errorMsg = e.toString().toLowerCase();
+      final isAuthError = errorMsg.contains('token') ||
+          errorMsg.contains('jwt') ||
+          errorMsg.contains('auth') ||
+          errorMsg.contains('unauthorized') ||
+          errorMsg.contains('expired');
+
+      if (isAuthError) {
+        print('Authentication error detected: $e');
+        // Attempt to refresh tokens
+        final refreshed = await GraphQLService.refreshTokens();
+        if (!refreshed) {
+          // If refresh failed, logout and redirect to login
+          print('Token refresh failed, logging out user');
+          await _authService.logout();
+          throw Exception('SESSION_EXPIRED');
+        } else {
+          // If refresh succeeded, throw a different error to indicate retry
+          print('Token refreshed successfully, user should retry operation');
+          throw Exception('RETRY_OPERATION');
+        }
       }
 
       print('Error updating profile: $e');
       rethrow;
+    }
+  }
+
+  // Fetch fresh user data from server
+  Future<void> _refreshUserDataFromServer() async {
+    try {
+      final currentUser = await _authService.getCurrentUser();
+      if (currentUser != null) {
+        // Fetch fresh data from server
+        final freshUserData =
+            await _authService.fetchCompleteUserData(currentUser.id!);
+        if (freshUserData != null) {
+          _currentUser = freshUserData;
+          if (_currentUser!.gender != null) {
+            _selectedGender = _currentUser!.gender!;
+          }
+          print('✅ ProfileEditViewModel: User data refreshed from server');
+        }
+      }
+    } catch (e) {
+      print('Error refreshing user data from server: $e');
+      // Don't throw here, just log the error
     }
   }
 

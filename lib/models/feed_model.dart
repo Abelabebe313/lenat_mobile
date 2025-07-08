@@ -8,6 +8,7 @@ class FeedPostModel {
   final String mediaId;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String category;
   final Media media;
 
   FeedPostModel({
@@ -20,6 +21,7 @@ class FeedPostModel {
     required this.mediaId,
     required this.createdAt,
     required this.updatedAt,
+    required this.category,
     required this.media,
   });
 
@@ -39,6 +41,7 @@ class FeedPostModel {
         updatedAt: json['updated_at'] != null
             ? DateTime.parse(json['updated_at'].toString())
             : DateTime.now(),
+        category: json['category']?.toString() ?? '',
         media: Media.fromJson(json['media'] as Map<String, dynamic>? ?? {}),
       );
     } catch (e) {
@@ -59,6 +62,7 @@ class FeedPostModel {
       'media_id': mediaId,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'category': category,
       'media': media.toJson(),
     };
   }

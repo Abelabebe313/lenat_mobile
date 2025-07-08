@@ -1,9 +1,15 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:lenat_mobile/models/market_product_model.dart';
 
 class MarketItemWidget extends StatelessWidget {
+  final MarketPlaceModel product;
+
   const MarketItemWidget({
     super.key,
+    required this.product,
   });
 
   @override
@@ -17,11 +23,33 @@ class MarketItemWidget extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: Image.asset(
-                  'assets/images/dress1.png',
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                ),
+                child: product.productImages.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: product.mainImageUrl,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: 120,
+                        placeholder: (context, url) =>
+                            product.mainImageBlurHash.isNotEmpty
+                                ? BlurHash(hash: product.mainImageBlurHash)
+                                : Container(
+                                    color: Colors.grey[300],
+                                    child: const Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  ),
+                        errorWidget: (context, url, error) => Container(
+                          color: Colors.grey[300],
+                          child: const Center(
+                            child: Icon(Icons.error),
+                          ),
+                        ),
+                      )
+                    : Image.asset(
+                        'assets/images/dress1.png',
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                      ),
               ),
               Positioned(
                 bottom: 10,
@@ -42,29 +70,34 @@ class MarketItemWidget extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "የነፍሰ ጡር ልብስ",
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.black,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.black,
+                      ),
                     ),
-                  ),
-                  Text(
-                    "2,500 ብር",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
+                    Text(
+                      product.formattedPrice,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               Container(
                 height: 30,

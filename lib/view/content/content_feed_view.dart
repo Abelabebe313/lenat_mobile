@@ -6,7 +6,10 @@ import 'package:lenat_mobile/view/content/content_feed_viewmodel.dart';
 
 class ContentFeedView extends StatefulWidget {
   final String category;
-  const ContentFeedView({super.key, required this.category,});
+  const ContentFeedView({
+    super.key,
+    required this.category,
+  });
 
   @override
   State<ContentFeedView> createState() => _ContentFeedViewState();
@@ -21,7 +24,8 @@ class _ContentFeedViewState extends State<ContentFeedView> {
     super.initState();
     _scrollController.addListener(_scrollListener);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ContentFeedViewModel>().loadInitialPosts();
+      final viewModel = context.read<ContentFeedViewModel>();
+      viewModel.setCategory(widget.category);
     });
   }
 
@@ -46,7 +50,7 @@ class _ContentFeedViewState extends State<ContentFeedView> {
   @override
   Widget build(BuildContext context) {
     final profileViewModel = Provider.of<ProfileViewModel>(context);
-    
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Consumer<ContentFeedViewModel>(
@@ -69,19 +73,16 @@ class _ContentFeedViewState extends State<ContentFeedView> {
                     },
                     icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
                   ),
-                  title:  Text(
-                    widget.category,
+                  title: Text(
+                    widget.category.replaceAll('_', ' '),
                     style: TextStyle(
                       fontFamily: 'NotoSansEthiopic',
-                      fontSize: 16,
+                      fontSize: 18,
                       fontWeight: FontWeight.w700,
                       color: Colors.black,
                     ),
                   ),
                 ),
-
-                
-
                 if (viewModel.isLoading && viewModel.posts.isEmpty)
                   const SliverFillRemaining(
                     child: Center(
@@ -103,6 +104,43 @@ class _ContentFeedViewState extends State<ContentFeedView> {
                           ElevatedButton(
                             onPressed: viewModel.retryLoading,
                             child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else if (!viewModel.isLoading && viewModel.posts.isEmpty)
+                  SliverFillRemaining(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.content_paste_off,
+                            size: 64,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            profileViewModel.isAmharic
+                                ? "በዚህ ምድብ ውስጥ ምንም ይዘት የለም"
+                                : "No content available in this category",
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey,
+                              fontFamily: 'NotoSansEthiopic',
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: viewModel.refreshPosts,
+                            child: Text(
+                              profileViewModel.isAmharic ? "አድስ" : "Refresh",
+                              style: const TextStyle(
+                                fontFamily: 'NotoSansEthiopic',
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -140,10 +178,12 @@ class _ContentFeedViewState extends State<ContentFeedView> {
 
                         final post = viewModel.posts[index];
                         return ContentFeedItem(
+                          id: post.id,
                           imageUrl: post.media.url,
                           description: post.description ?? '',
                           blurHash: post.media.blurHash,
                           isLiked: post.isLiked ?? false,
+                          isBookmarked: post.isBookmarked ?? false,
                         );
                       },
                     ),

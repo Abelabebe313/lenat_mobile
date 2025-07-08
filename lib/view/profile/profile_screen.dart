@@ -276,8 +276,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 const Icon(Icons.verified, color: Colors.blue, size: 18),
               ],
             ),
-            const Text(
-              '+251 9 123 456 78',
+            Text(
+              viewModel.currentUser?.phoneNumber ?? 'No phone number',
               style: TextStyle(
                 color: Colors.grey,
                 fontSize: 14,

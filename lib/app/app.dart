@@ -4,6 +4,7 @@ import 'package:lenat_mobile/core/colors.dart';
 import 'package:lenat_mobile/core/router.dart';
 import 'package:lenat_mobile/view/auth/auth_viewmodel.dart';
 import 'package:lenat_mobile/view/content/content_feed_viewmodel.dart';
+import 'package:lenat_mobile/view/market/market_viewmodel.dart';
 import 'package:lenat_mobile/view/media/media_viewmodel.dart';
 import 'package:lenat_mobile/view/profile_edit/profile_edit_viewmodel.dart';
 import 'package:lenat_mobile/view/profile_setup/profile_setup_viewmodel.dart';
@@ -31,6 +32,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => MediaViewModel()),
         ChangeNotifierProvider(create: (_) => TriviaViewModel()),
         ChangeNotifierProvider(create: (_) => QuestionViewModel()),
+        ChangeNotifierProvider(create: (_) => MarketViewModel()),
       ],
       child: GraphQLProvider(
         client: ValueNotifier(

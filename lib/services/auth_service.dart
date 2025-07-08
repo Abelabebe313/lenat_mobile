@@ -163,15 +163,15 @@ class AuthService {
 
       print('Fetching complete user data for userId: $userId');
 
-      final result = await GraphQLService.executeWithTokenRefresh(() async {
-        final client = await GraphQLService.getClient();
-        return await client.query(
-          QueryOptions(
-            document: gql(query),
-            variables: {'userId': userId},
-          ),
-        );
-      });
+      final client = await GraphQLService.getClient();
+
+      // Use the extension method for automatic token refresh
+      final result = await client.queryWithTokenRefresh(
+        QueryOptions(
+          document: gql(query),
+          variables: {'userId': userId},
+        ),
+      );
 
       print('GraphQL query executed successfully');
       print('Result data: ${result.data}');
@@ -237,236 +237,249 @@ class AuthService {
     String? relationship,
     int? pregnancyPeriod,
   }) async {
-    try {
-      final userDataStr = await _secureStorage.read(key: 'user_data');
+    final userDataStr = await _secureStorage.read(key: 'user_data');
 
-      if (userDataStr == null) {
-        throw Exception('User data not found');
-      }
+    if (userDataStr == null) {
+      throw Exception('User data not found');
+    }
 
-      // Get existing user data
-      final existingUserData = jsonDecode(userDataStr) as Map<String, dynamic>;
-      final userId = existingUserData['id'] as String;
+    // Get existing user data
+    final existingUserData = jsonDecode(userDataStr) as Map<String, dynamic>;
+    final userId = existingUserData['id'] as String;
 
-      // Combined mutation for both profile and patient updates
-      const mutation = r'''
-        mutation UpdateProfileFully(
-          $userId: uuid!,
-          $gender: String!,
-          $fullName: String!,
-          $dateOfBirth: date!,
-          $relationship: enum_parent_relationship_enum,
-          $pregnancyPeriod: Int
+    // Combined mutation for both profile and patient updates
+    const mutation = r'''
+      mutation UpdateProfileFully(
+        $userId: uuid!,
+        $gender: String!,
+        $fullName: String!,
+        $dateOfBirth: date!,
+        $relationship: enum_parent_relationship_enum,
+        $pregnancyPeriod: Int
+      ) {
+        update_profiles(
+          where: {id: {_eq: $userId}},
+          _set: {
+            gender: $gender,
+            full_name: $fullName,
+            birth_date: $dateOfBirth
+          }
         ) {
-          update_profiles(
-            where: {id: {_eq: $userId}},
-            _set: {
-              gender: $gender,
-              full_name: $fullName,
-              birth_date: $dateOfBirth
-            }
-          ) {
-            returning {
-              birth_date
-              full_name
-              gender
-              id
-            }
-          }
-          update_profile_patients(
-            where: {id: {_eq: $userId}},
-            _set: {
-              relationship: $relationship,
-              pregnancy_period: $pregnancyPeriod
-            }
-          ) {
-            returning {
-              pregnancy_period
-              relationship
-            }
+          returning {
+            birth_date
+            full_name
+            gender
+            id
           }
         }
-      ''';
-
-      final result = await GraphQLService.executeWithTokenRefresh(() async {
-        final client =
-            await GraphQLService.getClient(role: GraphQLService.roleMe);
-        return await client.mutate(
-          MutationOptions(
-            document: gql(mutation),
-            variables: {
-              'userId': userId,
-              'gender': gender,
-              'fullName': fullName,
-              'dateOfBirth': dateOfBirth,
-              'relationship': relationship,
-              'pregnancyPeriod': pregnancyPeriod,
-            },
-          ),
-        );
-      });
-
-      if (result.hasException) {
-        throw Exception(result.exception?.graphqlErrors.first.message ??
-            'Failed to update profile');
+        update_profile_patients(
+          where: {id: {_eq: $userId}},
+          _set: {
+            relationship: $relationship,
+            pregnancy_period: $pregnancyPeriod
+          }
+        ) {
+          returning {
+            pregnancy_period
+            relationship
+          }
+        }
       }
+    ''';
 
-      final profileData = result.data?['update_profiles']?['returning']?[0];
-      final patientData =
-          result.data?['update_profile_patients']?['returning']?[0];
-
-      if (profileData != null) {
-        // Merge profile data with existing user data
-        final updatedUserData = {
-          ...existingUserData,
+    final client = await GraphQLService.getClient(role: GraphQLService.roleMe);
+    // Use the extension method for automatic token refresh
+    final result = await client.mutationWithTokenRefresh(
+      MutationOptions(
+        document: gql(mutation),
+        variables: {
+          'userId': userId,
           'gender': gender,
-          'full_name': fullName,
-          'date_of_birth': dateOfBirth,
-          'new_user': false,
-        };
+          'fullName': fullName,
+          'dateOfBirth': dateOfBirth,
+          'relationship': relationship,
+          'pregnancyPeriod': pregnancyPeriod,
+        },
+      ),
+    );
 
-        // Add patient data if available
-        if (patientData != null) {
-          updatedUserData['relationship'] = patientData['relationship'];
-          updatedUserData['pregnancy_period'] = patientData['pregnancy_period'];
-        }
+    if (result.hasException) {
+      throw Exception(result.exception?.graphqlErrors.first.message ??
+          'Failed to update profile(updateUserProfile)');
+    }
 
-        // Save merged data
-        await _secureStorage.write(
-          key: 'user_data',
-          value: jsonEncode(updatedUserData),
-        );
+    final profileData = result.data?['update_profiles']?['returning']?[0];
+    final patientData =
+        result.data?['update_profile_patients']?['returning']?[0];
+
+    if (profileData != null) {
+      // Merge profile data with existing user data
+      final updatedUserData = {
+        ...existingUserData,
+        'gender': gender,
+        'full_name': fullName,
+        'date_of_birth': dateOfBirth,
+        'new_user': false,
+      };
+
+      // Add patient data if available
+      if (patientData != null) {
+        updatedUserData['relationship'] = patientData['relationship'];
+        updatedUserData['pregnancy_period'] = patientData['pregnancy_period'];
       }
-    } catch (e) {
-      print('Error updating profile: $e');
-      rethrow;
+
+      // Save merged data
+      await _secureStorage.write(
+        key: 'user_data',
+        value: jsonEncode(updatedUserData),
+      );
     }
   }
 
   Future<String?> getGoogleAuthUrl() async {
-    final client = await GraphQLService.getClient();
-    const query = r'''
-      mutation {
-        auth_google(redirect_uri: "com.example.lenat_mobile:/oauth2redirect") {
-          url
+    try {
+      final client = await GraphQLService.getClient();
+      const query = r'''
+        mutation {
+          auth_google(redirect_uri: "com.example.lenat_mobile:/oauth2redirect") {
+            url
+          }
         }
-      }
-    ''';
+      ''';
+      // Use the extension method for automatic token refresh
+      final result = await client
+          .mutate(MutationOptions(document: gql(query)));
 
-    final result = await client.mutate(MutationOptions(document: gql(query)));
-    return result.data?['auth_google']?['url'];
+      return result.data?['auth_google']?['url'];
+    } catch (e) {
+      print('Error getting Google auth URL: $e');
+      rethrow;
+    }
   }
 
   Future<Map<String, dynamic>?> handleGoogleCallback(String code) async {
-    final client = await GraphQLService.getClient();
-    final mutation = r'''
-      mutation($code: String!) {
-        auth_google_callback(code: $code) {
-          access_token
-          refresh_token
-          new_user
-          role
-          roles
-          phone_number
-          id
-          email
+    try {
+      final client = await GraphQLService.getClient();
+      final mutation = r'''
+        mutation($code: String!) {
+          auth_google_callback(code: $code) {
+            access_token
+            refresh_token
+            new_user
+            role
+            roles
+            phone_number
+            id
+            email
+          }
+        }
+      ''';
+      // Use the extension method for automatic token refresh
+      final result = await client.mutate(MutationOptions(
+        document: gql(mutation),
+        variables: {'code': code},
+      ));
+
+      final data = result.data?['auth_google_callback'];
+      if (data != null) {
+        // Store tokens securely
+        await _secureStorage.write(
+            key: 'access_token', value: data['access_token']);
+        await _secureStorage.write(
+            key: 'refresh_token', value: data['refresh_token']);
+
+        // Fetch complete user data
+        final completeUser = await fetchCompleteUserData(data['id']);
+        if (completeUser != null) {
+          return {
+            ...data,
+            'complete_user': completeUser.toJson(),
+          };
         }
       }
-    ''';
 
-    final result = await client.mutate(MutationOptions(
-      document: gql(mutation),
-      variables: {'code': code},
-    ));
-
-    final data = result.data?['auth_google_callback'];
-    if (data != null) {
-      // Store tokens securely
-      await _secureStorage.write(
-          key: 'access_token', value: data['access_token']);
-      await _secureStorage.write(
-          key: 'refresh_token', value: data['refresh_token']);
-
-      // Fetch complete user data
-      final completeUser = await fetchCompleteUserData(data['id']);
-      if (completeUser != null) {
-        return {
-          ...data,
-          'complete_user': completeUser.toJson(),
-        };
-      }
+      return data;
+    } catch (e) {
+      print('Error handling Google callback: $e');
+      rethrow;
     }
-
-    return data;
   }
 
   Future<Map<String, dynamic>?> startTelegramAuth(String phone) async {
-    final client = await GraphQLService.getClient();
+    try {
+      final client = await GraphQLService.getClient();
+      const mutation = r'''
+        mutation($phone: String!) {
+          auth_telegram(phone: $phone) {
+            ssid
+            tsession
+          }
+        }
+      ''';
+      // Use the extension method for automatic token refresh
+      final result = await client.mutate(MutationOptions(
+        document: gql(mutation),
+        variables: {
+          'phone': phone,
+        },
+      ));
 
-    const mutation = r'''
-    mutation($phone: String!) {
-      auth_telegram(phone: $phone) {
-        ssid
-        tsession
-      }
+      return result.data?['auth_telegram'];
+    } catch (e) {
+      print('Error starting Telegram auth: $e');
+      rethrow;
     }
-  ''';
-
-    final result = await client.mutate(MutationOptions(
-      document: gql(mutation),
-      variables: {
-        'phone': phone,
-      },
-    ));
-
-    return result.data?['auth_telegram'];
   }
 
   Future<Map<String, dynamic>?> completeTelegramAuth(
       String ssid, String tsession) async {
-    final client = await GraphQLService.getClient();
+    try {
+      final client = await GraphQLService.getClient();
+      const mutation = r'''
+        mutation($ssid: String!, $tsession: String!) {
+          auth_telegram_callback(ssid: $ssid, tsession: $tsession) {
+            access_token
+            refresh_token
+            new_user
+            role
+            roles
+            id
+            email
+          }
+        }
+      ''';
+      // Use the extension method for automatic token refresh
+      final result = await client.mutate(MutationOptions(
+        document: gql(mutation),
+        variables: {
+          'ssid': ssid,
+          'tsession': tsession,
+        },
+      ));
 
-    const mutation = r'''
-    mutation($ssid: String!, $tsession: String!) {
-      auth_telegram_callback(ssid: $ssid, tsession: $tsession) {
-        access_token
-        refresh_token
-        new_user
-        role
-        roles
-        id
-        email
+      final data = result.data?['auth_telegram_callback'];
+      if (data != null) {
+        // Store tokens securely
+        await _secureStorage.write(
+            key: 'access_token', value: data['access_token']);
+        await _secureStorage.write(
+            key: 'refresh_token', value: data['refresh_token']);
+
+        // Fetch complete user data
+        final completeUser = await fetchCompleteUserData(data['id']);
+        if (completeUser != null) {
+          return {
+            ...data,
+            'complete_user': completeUser.toJson(),
+          };
+        }
       }
+
+      return data;
+    } catch (e) {
+      print('Error completing Telegram auth: $e');
+      rethrow;
     }
-  ''';
-
-    final result = await client.mutate(MutationOptions(
-      document: gql(mutation),
-      variables: {
-        'ssid': ssid,
-        'tsession': tsession,
-      },
-    ));
-
-    final data = result.data?['auth_telegram_callback'];
-    if (data != null) {
-      // Store tokens securely
-      await _secureStorage.write(
-          key: 'access_token', value: data['access_token']);
-      await _secureStorage.write(
-          key: 'refresh_token', value: data['refresh_token']);
-
-      // Fetch complete user data
-      final completeUser = await fetchCompleteUserData(data['id']);
-      if (completeUser != null) {
-        return {
-          ...data,
-          'complete_user': completeUser.toJson(),
-        };
-      }
-    }
-
-    return data;
   }
 
   Future<void> logout() async {
@@ -496,8 +509,8 @@ class AuthService {
           }
         }
       ''';
-
-      final result = await client.query(
+      // Use the extension method for automatic token refresh
+      final result = await client.queryWithTokenRefresh(
         QueryOptions(
           document: gql(query),
           variables: {'fileName': fileName},
