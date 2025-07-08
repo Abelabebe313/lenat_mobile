@@ -177,74 +177,125 @@ class _AIChatViewState extends State<AIChatView> {
                       ),
               ),
               // Chat Box and Send Button
-              Padding(
-                padding: const EdgeInsets.only(
-                  left: 10.0,
-                  bottom: 8.0,
-                  top: 8.0,
-                ),
-                child: Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 0.0),
-                      child: IconButton(
-                        onPressed: () async {
-                          // apiKey == "" ? () {} : chatWithAI();
-                          var imagePicker = ImagePicker();
-                          XFile? image = await imagePicker.pickImage(
-                            source: ImageSource.gallery,
-                          );
-                          viewModel.imageBase64 =
-                              await viewModel.xFileToBase64(image);
-                        },
-                        icon: Icon(
-                          Icons.attach_file,
-                        ),
-                      ),
+              Column(
+                children: [
+                  viewModel.imageBase64 != null
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Stack(
+                              children: [
+                                Container(
+                                  width: 100.0,
+                                  margin: EdgeInsets.only(
+                                    left: 20.0,
+                                    bottom: 10.0,
+                                  ),
+                                  clipBehavior: Clip.hardEdge,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20.0),
+                                  ),
+                                  child: Image.memory(
+                                    base64Decode(
+                                      viewModel.imageBase64!,
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 0,
+                                  right: 0,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      viewModel.clearImageSelected();
+                                    },
+                                    child: Container(
+                                      padding: EdgeInsets.all(2.0),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withAlpha(100),
+                                        borderRadius:
+                                            BorderRadius.circular(20.0),
+                                      ),
+                                      child: Icon(
+                                        Icons.delete_outline_outlined,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
+                          ],
+                        )
+                      : Container(),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: 10.0,
+                      bottom: 8.0,
+                      top: 8.0,
                     ),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.only(
-                          left: 18.0,
-                          right: 18.0,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30.0),
-                          color: Colors.grey[100],
-                        ),
-                        child: TextField(
-                          controller: viewModel.userMessageController,
-                          style: TextStyle(
-                            color: Colors.black,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: "ask about anything...",
-                            hintStyle: TextStyle(color: Colors.grey[700]),
-                            border: InputBorder.none,
+                    child: Row(
+                      children: [
+                        // Attach
+                        Padding(
+                          padding: const EdgeInsets.only(right: 0.0),
+                          child: IconButton(
+                            onPressed: () async {
+                              viewModel.selectImage();
+                            },
+                            icon: Icon(
+                              Icons.attach_file,
+                            ),
                           ),
                         ),
-                      ),
+
+                        // Input Box
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.only(
+                              left: 18.0,
+                              right: 18.0,
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(30.0),
+                              color: Colors.grey[100],
+                            ),
+                            child: TextField(
+                              controller: viewModel.userMessageController,
+                              style: TextStyle(
+                                color: Colors.black,
+                              ),
+                              decoration: InputDecoration(
+                                hintText: "ask about anything...",
+                                hintStyle: TextStyle(color: Colors.grey[700]),
+                                border: InputBorder.none,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Send Button
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Primary,
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                            child: IconButton(
+                              onPressed: () {
+                                viewModel.sendTextToAI();
+                              },
+                              icon: Icon(
+                                Icons.send_outlined,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Primary,
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                        child: IconButton(
-                          onPressed: () {
-                            viewModel.sendTextToAI();
-                          },
-                          icon: Icon(
-                            Icons.send_outlined,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           ),

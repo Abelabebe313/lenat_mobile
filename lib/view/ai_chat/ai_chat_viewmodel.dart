@@ -14,6 +14,9 @@ class AiChatViewModel extends ChangeNotifier {
   ScrollController scrollController = ScrollController();
   TextEditingController userMessageController = TextEditingController();
   String? imageBase64;
+  var imageBytes;
+  var attachmentData;
+  var attachmentMime;
 
   String getAPIKeyQuery = r'''
     query GetAPIKey {
@@ -70,23 +73,33 @@ class AiChatViewModel extends ChangeNotifier {
     String userInput = userMessageController.text.trim();
     userMessageController.clear();
 
-    String formattedUserInput = userInput +
-        (imageBase64 != null ? ". Associated Image: $imageBase64" : "");
+    String formattedUserInput = userInput;
+    //  + (imageBase64 != null ? ". Associated Image: $imageBase64" : "");
 
     // Add to Chat History
-    addToChatHistory("User", userInput, imageBase64!);
+    addToChatHistory("User", userInput, imageBase64);
 
     // Response
-    final content = Content.text(formattedUserInput);
+    var content;
+    if (attachmentData != null) {
+      print("MULTIPART");
+      content = Content.multi([
+        TextPart(formattedUserInput),
+        DataPart(attachmentMime, attachmentData!),
+      ]);
+    } else {
+      print("NOT-MULTIPART");
+      content = Content.text(formattedUserInput);
+    }
     var response = await chat.sendMessage(content);
     String aiResponse = response.text!;
-
+    attachmentData = null;
     // Add to Chat History
     addToChatHistory("AI", aiResponse.toString().trim(), "");
   }
 
   // Add to Chat History
-  void addToChatHistory(String from, String content, String image) {
+  void addToChatHistory(String from, String content, String? image) {
     if (from == "AI") {
       chatHistory.removeLast();
     }
@@ -101,6 +114,7 @@ class AiChatViewModel extends ChangeNotifier {
         "content": 'Loading...',
       });
     }
+    clearImageSelected();
     notifyListeners();
   }
 
@@ -109,11 +123,70 @@ class AiChatViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void selectImage() async {
+    var imagePicker = ImagePicker();
+    XFile? image = await imagePicker.pickImage(
+      source: ImageSource.gallery,
+    );
+    imageBase64 = await xFileToBase64(image);
+    notifyListeners();
+  }
+
+  void clearImageSelected() async {
+    imageBase64 = null;
+    notifyListeners();
+  }
+
   Future<String?> xFileToBase64(XFile? file) async {
     if (file == null) return null;
+    attachmentMime = _determineMimeType(file.path.split('.').last);
+    attachmentData = await file.readAsBytes();
+
+    imageBytes = await file.readAsBytes();
+    print(imageBytes);
+    print(attachmentData);
+    print(attachmentMime);
 
     Uint8List bytes = await file.readAsBytes();
     String base64Image = base64Encode(bytes);
     return base64Image;
+  }
+
+  String _determineMimeType(String? extension) {
+    if (extension == null) return 'application/octet-stream';
+
+    switch (extension.toLowerCase()) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'pdf':
+        return 'application/pdf';
+      case 'doc':
+        return 'application/msword';
+      case 'docx':
+        return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      case 'ppt':
+        return 'application/vnd.ms-powerpoint';
+      case 'pptx':
+        return 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+      case 'xls':
+        return 'application/vnd.ms-excel';
+      case 'xlsx':
+        return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      case 'txt':
+        return 'text/plain';
+      case 'csv':
+        return 'text/csv';
+      case 'mp3':
+        return 'audio/mpeg';
+      case 'm4a':
+        return 'audio/m4a';
+      default:
+        return 'application/octet-stream';
+    }
   }
 }
