@@ -207,6 +207,7 @@ class _AIChatViewState extends State<AIChatView> {
                                   child: GestureDetector(
                                     onTap: () {
                                       viewModel.clearImageSelected();
+                                      viewModel.clearAttachmentData();
                                     },
                                     child: Container(
                                       padding: EdgeInsets.all(2.0),

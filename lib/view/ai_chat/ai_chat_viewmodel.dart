@@ -82,18 +82,17 @@ class AiChatViewModel extends ChangeNotifier {
     // Response
     var content;
     if (attachmentData != null) {
-      print("MULTIPART");
       content = Content.multi([
         TextPart(formattedUserInput),
         DataPart(attachmentMime, attachmentData!),
       ]);
     } else {
-      print("NOT-MULTIPART");
       content = Content.text(formattedUserInput);
     }
     var response = await chat.sendMessage(content);
     String aiResponse = response.text!;
-    attachmentData = null;
+    clearAttachmentData();
+
     // Add to Chat History
     addToChatHistory("AI", aiResponse.toString().trim(), "");
   }
@@ -137,15 +136,17 @@ class AiChatViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void clearAttachmentData() async {
+    attachmentData = null;
+    notifyListeners();
+  }
+
   Future<String?> xFileToBase64(XFile? file) async {
     if (file == null) return null;
     attachmentMime = _determineMimeType(file.path.split('.').last);
     attachmentData = await file.readAsBytes();
 
     imageBytes = await file.readAsBytes();
-    print(imageBytes);
-    print(attachmentData);
-    print(attachmentMime);
 
     Uint8List bytes = await file.readAsBytes();
     String base64Image = base64Encode(bytes);
