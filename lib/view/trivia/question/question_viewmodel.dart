@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:lenat_mobile/services/trivia_service.dart';
 import 'package:lenat_mobile/services/auth_service.dart';
+import 'package:lenat_mobile/services/trivia_progress_service.dart';
 import 'package:lenat_mobile/models/question_model.dart';
 import 'package:lenat_mobile/app/service_locator.dart';
 
 class QuestionViewModel extends ChangeNotifier {
   final _authService = locator<AuthService>();
+  final _triviaProgressService = locator<TriviaProgressService>();
+
   List<QuestionModel> _questions = [];
   bool _isLoading = false;
   String? _error;
@@ -14,6 +17,7 @@ class QuestionViewModel extends ChangeNotifier {
   int _score = 0;
   bool _gameCompleted = false;
   bool _isWinner = false;
+  String _currentTriviaId = '';
 
   List<QuestionModel> get questions => _questions;
   bool get isLoading => _isLoading;
@@ -41,6 +45,7 @@ class QuestionViewModel extends ChangeNotifier {
       _score = 0;
       _gameCompleted = false;
       _isWinner = false;
+      _currentTriviaId = triviaId;
       notifyListeners();
 
       _questions = await TriviaService.getTriviaQuestions(triviaId);
@@ -89,10 +94,51 @@ class QuestionViewModel extends ChangeNotifier {
       _currentQuestionIndex++;
     } else {
       _gameCompleted = true;
-      _isWinner = _lives > 0;
+      _isWinner = _lives > 0 && _score > (_questions.length / 2);
+
+      // Save progress when game is completed
+      _saveProgress();
     }
 
     notifyListeners();
+  }
+
+  // Handle timer expiration - count as wrong answer
+  void handleTimerExpiration() {
+    if (_gameCompleted || _currentQuestionIndex >= _questions.length) return;
+
+    // Count as wrong answer
+    _lives--;
+
+    // Move to next question or end game
+    if (_currentQuestionIndex < _questions.length - 1 && _lives > 0) {
+      _currentQuestionIndex++;
+    } else {
+      _gameCompleted = true;
+      _isWinner = _lives > 0 && _score > (_questions.length / 2);
+
+      // Save progress when game is completed
+      _saveProgress();
+    }
+
+    notifyListeners();
+  }
+
+  // Save progress to secure storage
+  Future<void> _saveProgress() async {
+    if (_currentTriviaId.isEmpty || _questions.isEmpty) return;
+
+    final bool passed = _score > (_questions.length / 2);
+
+    final progress = TriviaProgress(
+      completed: true,
+      score: _score,
+      totalQuestions: _questions.length,
+      passed: passed,
+      completedAt: DateTime.now(),
+    );
+
+    await _triviaProgressService.saveTriviaProgress(_currentTriviaId, progress);
   }
 
   void resetGame() {

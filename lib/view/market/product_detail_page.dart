@@ -1,30 +1,107 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:lenat_mobile/app/service_locator.dart';
 import 'package:lenat_mobile/core/colors.dart';
+import 'package:lenat_mobile/models/market_product_model.dart';
+import 'package:lenat_mobile/services/cart_service.dart';
+import 'package:lenat_mobile/view/profile/profile_viewmodel.dart';
+import 'package:provider/provider.dart';
 
 class ProductDetailPage extends StatefulWidget {
-  const ProductDetailPage({super.key});
+  final MarketPlaceModel product;
+  const ProductDetailPage({super.key, required this.product});
 
   @override
   State<ProductDetailPage> createState() => _ProductDetailPageState();
 }
 
 class _ProductDetailPageState extends State<ProductDetailPage> {
-  int selectedSizeIndex = 1;
-  int selectedColorIndex = 0;
+  int? selectedSizeIndex;
+  int? selectedColorIndex;
   bool isDescriptionExpanded = false;
+  final CartService _cartService = locator<CartService>();
+  bool _isAddingToCart = false;
 
-  final List<String> sizes = ['S', 'M', 'L', 'XL', 'XXL'];
-  final List<String> colors = ['Pink', 'Blue', 'Green', 'Beige'];
-  final List<String> images = [
-    'assets/images/dress1.png',
-    'assets/images/dress1.png',
-    'assets/images/dress1.png',
-    'assets/images/dress1.png',
-  ];
+  @override
+  void initState() {
+    super.initState();
+    // Initialize selected indices only if variants are available
+    if (widget.product.variants.size != null &&
+        widget.product.variants.size!.isNotEmpty) {
+      selectedSizeIndex = 0;
+    }
+    if (widget.product.variants.color != null &&
+        widget.product.variants.color!.isNotEmpty) {
+      selectedColorIndex = 0;
+    }
+
+    // Debug print to see the variants data
+    print('Size variants: ${widget.product.variants.size}');
+    print('Color variants: ${widget.product.variants.color}');
+  }
+
+  // Get selected size
+  String? get selectedSize {
+    if (selectedSizeIndex == null ||
+        widget.product.variants.size == null ||
+        widget.product.variants.size!.isEmpty) {
+      return null;
+    }
+    return widget.product.variants.size![selectedSizeIndex!];
+  }
+
+  // Get selected color
+  String? get selectedColor {
+    if (selectedColorIndex == null ||
+        widget.product.variants.color == null ||
+        widget.product.variants.color!.isEmpty) {
+      return null;
+    }
+    return widget.product.variants.color![selectedColorIndex!];
+  }
+
+  // Add to cart
+  Future<void> _addToCart() async {
+    setState(() {
+      _isAddingToCart = true;
+    });
+
+    try {
+      await _cartService.addToCart(
+        widget.product,
+        selectedSize: selectedSize,
+        selectedColor: selectedColor,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('ምርት ወደ ግብይት ዕቃ ተጨምሯል'),
+          action: SnackBarAction(
+            label: 'ወደ ግብይት ዕቃ',
+            onPressed: () {
+              Navigator.pushNamed(context, '/cart');
+            },
+          ),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error adding to cart: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isAddingToCart = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final profileViewModel = Provider.of<ProfileViewModel>(context);
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
@@ -42,21 +119,31 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             fontFamily: 'NotoSansEthiopic',
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.shopping_cart, color: Colors.black),
+            onPressed: () {
+              Navigator.pushNamed(context, '/cart');
+            },
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16),
-              const Text(
-                'የምርቱ ዝርዝር',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 20,
-                  fontFamily: 'NotoSansEthiopic',
-                  fontWeight: FontWeight.w700,
+              Center(
+                child: Text(
+                  profileViewModel.isAmharic ? 'የምርቱ ዝርዝር' : 'Product Details',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 20,
+                    fontFamily: 'NotoSansEthiopic',
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
@@ -71,11 +158,22 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: Image.asset(
-                        'assets/images/dress1.png',
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                      ),
+                      child: widget.product.productImages.isNotEmpty
+                          ? CachedNetworkImage(
+                              imageUrl:
+                                  widget.product.productImages[0].medium.url,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              placeholder: (context, url) => Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                              errorWidget: (context, url, error) =>
+                                  Icon(Icons.error),
+                            )
+                          : Container(
+                              color: Colors.grey[300],
+                              child: Icon(Icons.image_not_supported, size: 50),
+                            ),
                     ),
                   ),
                   Positioned(
@@ -95,48 +193,66 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       ),
                     ),
                   ),
-                  Positioned(
-                    bottom: 10,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: Container(
-                        height: 80,
-                        width: MediaQuery.of(context).size.width * 0.85,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: images.length,
-                          itemBuilder: (context, index) {
-                            return Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 4,vertical: 4),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Image.asset(
-                                  images[index],
-                                  fit: BoxFit.cover,
-                                  width: 80,
+                  if (widget.product.productImages.length > 1)
+                    Positioned(
+                      bottom: 10,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: Container(
+                          height: 80,
+                          width: MediaQuery.of(context).size.width * 0.85,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: widget.product.productImages.length,
+                            itemBuilder: (context, index) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 4, vertical: 4),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: CachedNetworkImage(
+                                    imageUrl: widget.product
+                                        .productImages[index].medium.url,
+                                    fit: BoxFit.cover,
+                                    width: 80,
+                                    placeholder: (context, url) => Container(
+                                      color: Colors.grey[200],
+                                      child: Center(
+                                        child: SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                              strokeWidth: 2),
+                                        ),
+                                      ),
+                                    ),
+                                    errorWidget: (context, url, error) =>
+                                        Container(
+                                      color: Colors.grey[200],
+                                      child: Icon(Icons.error, size: 20),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
+                              );
+                            },
+                          ),
                         ),
                       ),
-                    ),
-                  )
+                    )
                 ],
               ),
               const SizedBox(height: 16),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      "የምርቱ ስም",
+                      widget.product.name,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -144,43 +260,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       ),
                     ),
                   ),
-                  Container(
-                    height: 30,
-                    width: 60,
-                    decoration: BoxDecoration(
-                      color: Color(0xFFFCEACC),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.star,
-                          color: Color(0xFFFFB200),
-                          size: 16,
-                        ),
-                        const SizedBox(width: 2),
-                        Text(
-                          "4.9",
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFFFFB200),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                 ],
               ),
-
               // Description
               const SizedBox(height: 16),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "እንቅስቃሴ የሚያስተዳድር እና የተወዳጅ የማህፀን ልብስ የሚያቀርብ የምርት ስብስ ይዘው በሙሉ ወቅት ይወዳድሩ። የእኛ ኮሌክሽን ይዘው ይገኛሉ።... ",
+                    widget.product.description,
                     maxLines: isDescriptionExpanded ? null : 2,
                     overflow: isDescriptionExpanded
                         ? TextOverflow.visible
@@ -202,137 +290,133 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    child: const Text(
-                      "Read More",
+                    child: Text(
+                      isDescriptionExpanded ? "Read Less" : "Read More",
                       style: TextStyle(color: Colors.blue),
                     ),
                   ),
                 ],
               ),
 
-              // Size Selection
-              const SizedBox(height: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "ልብስ",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'NotoSansEthiopic',
+              // Size Selection - Only show if sizes are available
+              if (widget.product.variants.size != null &&
+                  widget.product.variants.size!.isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 16),
+                    const Text(
+                      "ልብስ",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'NotoSansEthiopic',
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 32,
-                    children: List.generate(sizes.length, (index) {
-                      final isSelected = selectedSizeIndex == index;
-                      final isDisabled = sizes[index] == 'XXL';
-
-                      return GestureDetector(
-                        onTap: isDisabled
-                            ? null
-                            : () {
-                                setState(() {
-                                  selectedSizeIndex = index;
-                                });
-                              },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: isDisabled
-                                ? Colors.grey.shade100
-                                : isSelected
-                                    ? Colors.blue
-                                    : Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: isDisabled
-                                  ? Colors.grey.shade300
-                                  : isSelected
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: Wrap(
+                        spacing: 16,
+                        alignment: WrapAlignment.start,
+                        runSpacing: 12,
+                        children: List.generate(
+                            widget.product.variants.size!.length, (index) {
+                          final isSelected = selectedSizeIndex == index;
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                selectedSizeIndex = index;
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: isSelected ? Colors.blue : Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: isSelected
                                       ? Colors.blue
                                       : Colors.grey.shade400,
+                                ),
+                              ),
+                              child: Text(
+                                widget.product.variants.size![index],
+                                style: TextStyle(
+                                  color:
+                                      isSelected ? Colors.white : Colors.black,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: 'NotoSansEthiopic',
+                                ),
+                              ),
                             ),
-                          ),
-                          child: Text(
-                            sizes[index],
-                            style: TextStyle(
-                              color: isDisabled
-                                  ? Colors.grey
-                                  : isSelected
-                                      ? Colors.white
-                                      : Colors.black,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'NotoSansEthiopic',
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-                  const SizedBox(height: 32),
-                  const Text(
-                    "ቀለም ይምረጡ (አማራጭ)",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'NotoSansEthiopic',
+                          );
+                        }),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 16,
-                    children: List.generate(colors.length, (index) {
-                      final isSelected = selectedColorIndex == index;
-                      final isDisabled = colors[index] == 'Beige';
+                  ],
+                ),
 
-                      return GestureDetector(
-                        onTap: isDisabled
-                            ? null
-                            : () {
-                                setState(() {
-                                  selectedColorIndex = index;
-                                });
-                              },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: isDisabled
-                                ? Colors.grey.shade100
-                                : isSelected
-                                    ? Colors.blue
-                                    : Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: isDisabled
-                                  ? Colors.grey.shade300
-                                  : isSelected
+              // Color Selection - Only show if colors are available
+              if (widget.product.variants.color != null &&
+                  widget.product.variants.color!.isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 32),
+                    const Text(
+                      "ቀለም ይምረጡ",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'NotoSansEthiopic',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: Wrap(
+                        spacing: 16,
+                        alignment: WrapAlignment.start,
+                        runSpacing: 12,
+                        children: List.generate(
+                            widget.product.variants.color!.length, (index) {
+                          final isSelected = selectedColorIndex == index;
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                selectedColorIndex = index;
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: isSelected ? Colors.blue : Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: isSelected
                                       ? Colors.blue
                                       : Colors.grey.shade400,
+                                ),
+                              ),
+                              child: Text(
+                                widget.product.variants.color![index],
+                                style: TextStyle(
+                                  color:
+                                      isSelected ? Colors.white : Colors.black,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: 'NotoSansEthiopic',
+                                ),
+                              ),
                             ),
-                          ),
-                          child: Text(
-                            colors[index],
-                            style: TextStyle(
-                              color: isDisabled
-                                  ? Colors.grey
-                                  : isSelected
-                                      ? Colors.white
-                                      : Colors.black,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'NotoSansEthiopic',
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-                  const SizedBox(height: 20),
-                ],
-              ),
+                          );
+                        }),
+                      ),
+                    ),
+                  ],
+                ),
               const SizedBox(height: 20),
             ],
           ),
@@ -359,7 +443,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Total Price",
+                  profileViewModel.isAmharic ? "ጠቅላላ ዋጋ" : "Total Price",
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w400,
@@ -368,7 +452,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   ),
                 ),
                 Text(
-                  "2, 500 ብር",
+                  "${widget.product.price} ብር",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -385,15 +469,32 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 color: Primary,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Center(
-                child: Text(
-                  "አሁን ይግዙ",
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
+              child: ElevatedButton(
+                onPressed: _isAddingToCart ? null : _addToCart,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
+                child: _isAddingToCart
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Text(
+                        profileViewModel.isAmharic ? "አሁን ይግዙ" : "Buy Now",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                          fontFamily: 'NotoSansEthiopic',
+                        ),
+                      ),
               ),
             ),
             Container(
@@ -403,12 +504,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 color: Color(0xFFD5E5F7),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Center(
-                child: Icon(
+              child: IconButton(
+                icon: const Icon(
                   Icons.shopping_bag,
                   color: Primary,
                   size: 24,
                 ),
+                onPressed: _isAddingToCart ? null : _addToCart,
               ),
             ),
           ],

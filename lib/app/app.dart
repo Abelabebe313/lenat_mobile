@@ -6,11 +6,8 @@ import 'package:lenat_mobile/view/ai_chat/ai_chat_viewmodel.dart';
 import 'package:lenat_mobile/view/auth/auth_viewmodel.dart';
 import 'package:lenat_mobile/view/consult/consult_page_viewmodel.dart';
 import 'package:lenat_mobile/view/content/content_feed_viewmodel.dart';
-<<<<<<< HEAD
 import 'package:lenat_mobile/view/market/market_viewmodel.dart';
-=======
 import 'package:lenat_mobile/view/home/home_viewmodel.dart';
->>>>>>> d7b162eb508cace9bfe58883888a85d7331779f8
 import 'package:lenat_mobile/view/media/media_viewmodel.dart';
 import 'package:lenat_mobile/view/premium/premium_viewmodel.dart';
 import 'package:lenat_mobile/view/profile_edit/profile_edit_viewmodel.dart';
@@ -21,6 +18,7 @@ import 'package:lenat_mobile/view/main/main_viewmodel.dart';
 import 'package:lenat_mobile/view/splash/splash_viewmodel.dart';
 import 'package:lenat_mobile/view/profile/profile_viewmodel.dart';
 import 'package:lenat_mobile/view/trivia/trivia_viewmodel.dart';
+import 'package:lenat_mobile/view/market/cart/cart_viewmodel.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -39,14 +37,12 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => MediaViewModel()),
         ChangeNotifierProvider(create: (_) => TriviaViewModel()),
         ChangeNotifierProvider(create: (_) => QuestionViewModel()),
-<<<<<<< HEAD
         ChangeNotifierProvider(create: (_) => MarketViewModel()),
-=======
         ChangeNotifierProvider(create: (_) => ConsultPageViewModel()),
         ChangeNotifierProvider(create: (_) => AiChatViewModel()),
         ChangeNotifierProvider(create: (_) => HomeViewModel()),
         ChangeNotifierProvider(create: (_) => PremiumViewModel()),
->>>>>>> d7b162eb508cace9bfe58883888a85d7331779f8
+        ChangeNotifierProvider(create: (_) => CartViewModel()),
       ],
       child: GraphQLProvider(
         client: ValueNotifier(

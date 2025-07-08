@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:lenat_mobile/core/colors.dart';
 import 'package:lenat_mobile/models/cart_model.dart';
-import 'package:lenat_mobile/view/cart/cart_view.dart';
-import 'package:lenat_mobile/view/checkout/widget/payment_success_popups.dart';
+import 'package:lenat_mobile/view/market/cart/cart_view.dart';
+import 'package:lenat_mobile/view/market/checkout/widget/payment_success_popups.dart';
 
 class CheckOutView extends StatefulWidget {
   const CheckOutView({super.key});
@@ -19,6 +19,7 @@ class _CheckOutViewState extends State<CheckOutView> {
 
   final List<CartItemModel> cartItems = [
     CartItemModel(
+      productId: '1',
       imageUrl: 'assets/images/dress1.png',
       title: 'የማቅረብ ልብስ',
       size: 'XL',
@@ -26,6 +27,7 @@ class _CheckOutViewState extends State<CheckOutView> {
       quantity: 12,
     ),
     CartItemModel(
+      productId: '2',
       imageUrl: 'assets/images/dress1.png',
       title: 'የማቅረብ ልብስ',
       size: 'XL',
@@ -33,6 +35,7 @@ class _CheckOutViewState extends State<CheckOutView> {
       quantity: 15,
     ),
     CartItemModel(
+      productId: '3',
       imageUrl: 'assets/images/dress1.png',
       title: 'የማቅረብ ልብስ',
       size: 'XL',

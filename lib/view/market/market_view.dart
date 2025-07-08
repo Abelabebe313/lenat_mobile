@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:lenat_mobile/view/market/cart/cart_viewmodel.dart';
 import 'package:lenat_mobile/view/profile/profile_viewmodel.dart';
 import 'package:provider/provider.dart';
 
@@ -55,19 +56,13 @@ class _MarketViewState extends State<MarketView> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       final viewModel = context.read<MarketViewModel>();
-      try {
-        // Try to load products with proper error handling
-        await viewModel.loadFeaturedProducts();
-      } catch (e) {
-        print('Error loading products in initState: $e');
-        // If there's an error on first load, we'll retry once
-        if (mounted) {
-          await Future.delayed(const Duration(milliseconds: 500));
-          viewModel.loadFeaturedProducts();
-        }
-      }
+      viewModel.loadFeaturedProducts();
+
+      // Also load cart items to update badge
+      final cartViewModel = context.read<CartViewModel>();
+      cartViewModel.loadCart();
     });
   }
 
@@ -92,15 +87,47 @@ class _MarketViewState extends State<MarketView> {
           ),
         ),
         actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/cart');
+          Consumer<CartViewModel>(
+            builder: (context, cartViewModel, child) {
+              return Stack(
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/cart');
+                    },
+                    icon: HugeIcon(
+                      icon: HugeIcons.strokeRoundedShoppingCart01,
+                      color: Colors.black,
+                      size: 30,
+                    ),
+                  ),
+                  if (!cartViewModel.isEmpty)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          '${cartViewModel.cartItems.length}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              );
             },
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedShoppingCart01,
-              color: Colors.black,
-              size: 30,
-            ),
           ),
         ],
       ),
@@ -376,7 +403,8 @@ class _MarketViewState extends State<MarketView> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const ProductDetailPage(),
+                              builder: (context) =>
+                                  ProductDetailPage(product: product),
                             ),
                           );
                         },

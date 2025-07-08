@@ -17,6 +17,8 @@ class ResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double passPercentage = (score / totalQuestions) * 100;
+    
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
@@ -25,13 +27,23 @@ class ResultScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset(
-                isWinner ? 'assets/images/trophy.png' : 'assets/images/trophy.png',
-                height: 200,
-              ),
+              // Show trophy only if user passed (score > 50%)
+              if (isWinner) ...[
+                Image.asset(
+                  'assets/images/trophy.png',
+                  height: 180,
+                ),
+              ] else ...[
+                Icon(
+                  Icons.sentiment_dissatisfied_rounded,
+                  size: 120,
+                  color: Colors.grey,
+                ),
+                const SizedBox(height: 16),
+              ],
               const SizedBox(height: 24),
               Text(
-                isWinner ? 'አሸናፊ ሆነዋል!' : 'አይደለም!',
+                isWinner ? 'አሸናፊ ሆነዋል!' : 'አልተሳካም!',
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -40,7 +52,7 @@ class ResultScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'የተገኙት ነጥብ: $score/$totalQuestions',
+                'የተገኙት ነጥብ: $score/$totalQuestions (${passPercentage.toStringAsFixed(0)}%)',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 18,

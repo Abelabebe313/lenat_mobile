@@ -39,12 +39,33 @@ class _QuestionViewState extends State<QuestionView> {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (timerSeconds == 0) {
         timer.cancel();
-        // Handle timer expiration by setting a flag
-        setState(() {
-          isAnswerSelected = true;
-          selectedAnswer = null;
-        });
-        // The answer will be handled in the next build cycle
+        // Handle timer expiration
+        if (_currentViewModel != null) {
+          setState(() {
+            isAnswerSelected = true;
+            selectedAnswer = null;
+          });
+          // Call the viewmodel method to handle timer expiration
+          _currentViewModel!.handleTimerExpiration();
+          
+          // Wait and then move to next question or show result
+          Future.delayed(const Duration(seconds: 2), () {
+            if (_currentViewModel!.gameCompleted) {
+              setState(() {
+                showResult = true;
+              });
+            } else {
+              _pageController.nextPage(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut);
+              setState(() {
+                isAnswerSelected = false;
+                selectedAnswer = null;
+              });
+              startTimer();
+            }
+          });
+        }
       } else {
         setState(() {
           timerSeconds--;
@@ -65,7 +86,7 @@ class _QuestionViewState extends State<QuestionView> {
       viewModel.answerQuestion(answer);
     } else {
       // Time ran out, count as wrong answer
-      viewModel.answerQuestion('');
+      viewModel.handleTimerExpiration();
     }
 
     Future.delayed(const Duration(seconds: 2), () {
@@ -337,7 +358,7 @@ class _QuestionViewState extends State<QuestionView> {
                                             style: TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.w500,
-                                              color: isAnswerSelected
+                                              color: isAnswerSelected && (bgColor == Primary || bgColor == Colors.red)
                                                   ? Colors.white
                                                   : Colors.black,
                                               fontFamily: 'NotoSansEthiopic',
@@ -384,7 +405,23 @@ class _QuestionViewState extends State<QuestionView> {
                             SizedBox(
                               width: MediaQuery.of(context).size.width * 0.7,
                               child: ElevatedButton(
-                                onPressed: isAnswerSelected ? () => {} : null,
+                                onPressed: isAnswerSelected ? () {
+                                  if (viewModel.gameCompleted) {
+                                    _timer?.cancel();
+                                    setState(() {
+                                      showResult = true;
+                                    });
+                                  } else {
+                                    _pageController.nextPage(
+                                      duration: const Duration(milliseconds: 300),
+                                      curve: Curves.easeInOut);
+                                    setState(() {
+                                      isAnswerSelected = false;
+                                      selectedAnswer = null;
+                                    });
+                                    startTimer();
+                                  }
+                                } : null,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Primary,
                                   shape: RoundedRectangleBorder(

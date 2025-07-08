@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:lenat_mobile/core/colors.dart';
+import 'package:lenat_mobile/services/trivia_progress_service.dart';
 import 'package:lenat_mobile/view/trivia/question/question_view.dart';
 import 'package:lenat_mobile/view/trivia/trivia_viewmodel.dart';
 import 'package:provider/provider.dart';
@@ -114,15 +115,27 @@ class _TriviaViewState extends State<TriviaView> {
                     itemCount: viewModel.triviaList.length,
                     itemBuilder: (context, index) {
                       final trivia = viewModel.triviaList[index];
+                      final triviaId = trivia.id ?? '';
+                      final isUnlocked = viewModel.isTriviaUnlocked(triviaId);
+                      final progress = viewModel.getTriviaProgress(triviaId);
+                      
+                      // Show progress if available
+                      String progressText = '';
+                      if (progress != null && progress.completed) {
+                        progressText = '${progress.score}/${progress.totalQuestions} ነጥብ';
+                      }
+                      
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 16),
                         child: _buildQuestionCategoryCard(
                           trivia.name ?? 'Unknown',
                           trivia.description ?? 'No description available',
                           _getIconForIndex(index),
-                          true, // For now, all trivia are available
+                          isUnlocked,
                           trivia.questions?.length ?? 0,
-                          trivia.id ?? '',
+                          triviaId,
+                          progressText,
+                          progress?.passed ?? false,
                         ),
                       );
                     },
@@ -157,6 +170,8 @@ class _TriviaViewState extends State<TriviaView> {
     bool status,
     int questionCount,
     String triviaId,
+    String progressText,
+    bool passed,
   ) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -171,7 +186,7 @@ class _TriviaViewState extends State<TriviaView> {
             height: 80,
             child: HugeIcon(
               icon: icon,
-              color: Colors.black,
+              color: status ? Colors.black : Colors.grey,
               size: 48.0,
             ),
           ),
@@ -190,14 +205,15 @@ class _TriviaViewState extends State<TriviaView> {
                           fontWeight: FontWeight.bold,
                           fontFamily: 'NotoSansEthiopic',
                           fontSize: 16,
+                          color: status ? Colors.black : Colors.grey,
                         ),
                       ),
                     ),
                     Text(
-                      '$questionCount ጥያቄዎች',
+                      progressText.isNotEmpty ? progressText : '$questionCount ጥያቄዎች',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Primary,
+                        color: passed ? Colors.green : Primary,
                         fontFamily: 'NotoSansEthiopic',
                         fontSize: 12,
                       ),
@@ -209,7 +225,7 @@ class _TriviaViewState extends State<TriviaView> {
                   description,
                   textAlign: TextAlign.start,
                   style: TextStyle(
-                    color: Colors.black54,
+                    color: status ? Colors.black54 : Colors.grey,
                     fontSize: 12,
                   ),
                 ),
@@ -252,7 +268,7 @@ class _TriviaViewState extends State<TriviaView> {
                   ),
                   child: status
                       ? Text(
-                          "አሁን ይጫወቱ",
+                          progressText.isNotEmpty ? "እንደገና ይጫወቱ" : "አሁን ይጫወቱ",
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
