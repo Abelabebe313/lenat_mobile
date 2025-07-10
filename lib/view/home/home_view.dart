@@ -106,7 +106,7 @@ class _HomeViewState extends State<HomeView> {
                       ),
                     ),
                     Container(
-                      width: 200.0,
+                      width: 190.0,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

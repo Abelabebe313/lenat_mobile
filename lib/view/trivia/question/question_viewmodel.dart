@@ -128,17 +128,31 @@ class QuestionViewModel extends ChangeNotifier {
   Future<void> _saveProgress() async {
     if (_currentTriviaId.isEmpty || _questions.isEmpty) return;
 
+    // Get existing progress to compare scores
+    final existingProgress =
+        await _triviaProgressService.getTriviaProgress(_currentTriviaId);
+
+    // Only update if:
+    // 1. No previous progress exists, or
+    // 2. New score is higher than previous score, or
+    // 3. Previous attempt didn't pass but this one does
     final bool passed = _score > (_questions.length / 2);
+    final bool shouldUpdate = existingProgress == null ||
+        _score > (existingProgress.score) ||
+        (!existingProgress.passed && passed);
 
-    final progress = TriviaProgress(
-      completed: true,
-      score: _score,
-      totalQuestions: _questions.length,
-      passed: passed,
-      completedAt: DateTime.now(),
-    );
+    if (shouldUpdate) {
+      final progress = TriviaProgress(
+        completed: true,
+        score: _score,
+        totalQuestions: _questions.length,
+        passed: passed,
+        completedAt: DateTime.now(),
+      );
 
-    await _triviaProgressService.saveTriviaProgress(_currentTriviaId, progress);
+      await _triviaProgressService.saveTriviaProgress(
+          _currentTriviaId, progress);
+    }
   }
 
   void resetGame() {

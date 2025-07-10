@@ -47,7 +47,7 @@ class _QuestionViewState extends State<QuestionView> {
           });
           // Call the viewmodel method to handle timer expiration
           _currentViewModel!.handleTimerExpiration();
-          
+
           // Wait and then move to next question or show result
           Future.delayed(const Duration(seconds: 2), () {
             if (_currentViewModel!.gameCompleted) {
@@ -56,8 +56,8 @@ class _QuestionViewState extends State<QuestionView> {
               });
             } else {
               _pageController.nextPage(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut);
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut);
               setState(() {
                 isAnswerSelected = false;
                 selectedAnswer = null;
@@ -202,9 +202,16 @@ class _QuestionViewState extends State<QuestionView> {
                 viewModel.resetGame();
                 setState(() {
                   showResult = false;
+                  isAnswerSelected = false;
+                  selectedAnswer = null;
                   _pageController = PageController();
                 });
-                startTimer();
+                // Reload questions to ensure fresh state
+                viewModel.loadQuestions(widget.triviaId, context).then((_) {
+                  if (mounted) {
+                    startTimer();
+                  }
+                });
               },
             );
           }
@@ -358,7 +365,9 @@ class _QuestionViewState extends State<QuestionView> {
                                             style: TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.w500,
-                                              color: isAnswerSelected && (bgColor == Primary || bgColor == Colors.red)
+                                              color: isAnswerSelected &&
+                                                      (bgColor == Primary ||
+                                                          bgColor == Colors.red)
                                                   ? Colors.white
                                                   : Colors.black,
                                               fontFamily: 'NotoSansEthiopic',
@@ -402,47 +411,47 @@ class _QuestionViewState extends State<QuestionView> {
                               ),
                             ],
                             const Spacer(),
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.7,
-                              child: ElevatedButton(
-                                onPressed: isAnswerSelected ? () {
-                                  if (viewModel.gameCompleted) {
-                                    _timer?.cancel();
-                                    setState(() {
-                                      showResult = true;
-                                    });
-                                  } else {
-                                    _pageController.nextPage(
-                                      duration: const Duration(milliseconds: 300),
-                                      curve: Curves.easeInOut);
-                                    setState(() {
-                                      isAnswerSelected = false;
-                                      selectedAnswer = null;
-                                    });
-                                    startTimer();
-                                  }
-                                } : null,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Primary,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 60,
-                                    vertical: 12,
-                                  ),
-                                ),
-                                child: const Text(
-                                  "ቀጥል",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white,
-                                    fontFamily: 'NotoSansEthiopic',
-                                  ),
-                                ),
-                              ),
-                            )
+                            // SizedBox(
+                            //   width: MediaQuery.of(context).size.width * 0.7,
+                            //   child: ElevatedButton(
+                            //     onPressed: isAnswerSelected ? () {
+                            //       if (viewModel.gameCompleted) {
+                            //         _timer?.cancel();
+                            //         setState(() {
+                            //           showResult = true;
+                            //         });
+                            //       } else {
+                            //         _pageController.nextPage(
+                            //           duration: const Duration(milliseconds: 300),
+                            //           curve: Curves.easeInOut);
+                            //         setState(() {
+                            //           isAnswerSelected = false;
+                            //           selectedAnswer = null;
+                            //         });
+                            //         startTimer();
+                            //       }
+                            //     } : null,
+                            //     style: ElevatedButton.styleFrom(
+                            //       backgroundColor: Primary,
+                            //       shape: RoundedRectangleBorder(
+                            //         borderRadius: BorderRadius.circular(10),
+                            //       ),
+                            //       padding: const EdgeInsets.symmetric(
+                            //         horizontal: 60,
+                            //         vertical: 12,
+                            //       ),
+                            //     ),
+                            //     child: const Text(
+                            //       "ቀጥል",
+                            //       style: TextStyle(
+                            //         fontSize: 14,
+                            //         fontWeight: FontWeight.w500,
+                            //         color: Colors.white,
+                            //         fontFamily: 'NotoSansEthiopic',
+                            //       ),
+                            //     ),
+                            //   ),
+                            // )
                           ],
                         ),
                       );

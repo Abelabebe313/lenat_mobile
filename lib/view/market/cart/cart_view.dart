@@ -3,6 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:lenat_mobile/core/colors.dart';
 import 'package:lenat_mobile/models/cart_model.dart';
 import 'package:lenat_mobile/view/market/cart/cart_viewmodel.dart';
+import 'package:lenat_mobile/view/profile/profile_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -25,6 +26,7 @@ class _CartViewState extends State<CartView> {
 
   @override
   Widget build(BuildContext context) {
+    final profileViewModel = Provider.of<ProfileViewModel>(context);
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
@@ -34,8 +36,8 @@ class _CartViewState extends State<CartView> {
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'ወደ ኋላ ይመለሱ',
+        title: Text(
+          profileViewModel.isAmharic ? 'ወደ ኋላ ይመለሱ' : 'Back',
           style: TextStyle(
             color: Colors.black,
             fontSize: 14,
@@ -149,9 +151,9 @@ class _CartViewState extends State<CartView> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const SizedBox(height: 16),
-                  const Text(
-                    'የእኔ ግብይት',
-                    style: TextStyle(
+                  Text(
+                    profileViewModel.isAmharic ? 'የመረጡት እቃ' : 'Cart',
+                    style: const TextStyle(
                       color: Colors.black,
                       fontSize: 20,
                       fontFamily: 'NotoSansEthiopic',
@@ -171,6 +173,7 @@ class _CartViewState extends State<CartView> {
                             viewModel,
                             viewModel.cartItems[index],
                             index,
+                            profileViewModel,
                           ),
                         );
                       },
@@ -206,9 +209,9 @@ class _CartViewState extends State<CartView> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 const SizedBox(height: 10),
-                buildPriceRow("ንዑስ ገንዘብ", "${viewModel.totals.subtotal} ብር"),
-                buildPriceRow("ዴሊቨሪ", "${viewModel.totals.deliveryFee} ብር"),
-                buildPriceRow("ጠቅላላ ዋጋ", "${viewModel.totals.total} ብር"),
+                buildPriceRow(profileViewModel.isAmharic ? "ንዑስ ገንዘብ" : "Subtotal", "${viewModel.totals.subtotal} ብር"),
+                buildPriceRow(profileViewModel.isAmharic ? "ዴሊቨሪ" : "Delivery Fee", "${viewModel.totals.deliveryFee} ብር"),
+                buildPriceRow(profileViewModel.isAmharic ? "ጠቅላላ ዋጋ" : "Total", "${viewModel.totals.total} ብር"),
                 const SizedBox(height: 10),
                 SizedBox(
                   width: MediaQuery.of(context).size.width * 0.8,
@@ -226,8 +229,8 @@ class _CartViewState extends State<CartView> {
                         vertical: 12,
                       ),
                     ),
-                    child: const Text(
-                      "ወደ ትዕዛዝ ይቀጥሉ",
+                    child: Text(
+                      profileViewModel.isAmharic ? "ወደ ትዕዛዝ ይቀጥሉ" : "Proceed to Checkout",
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -247,7 +250,7 @@ class _CartViewState extends State<CartView> {
   }
 
   Widget _buildCartItem(
-      CartViewModel viewModel, CartItemModel item, int index) {
+      CartViewModel viewModel, CartItemModel item, int index, ProfileViewModel profileViewModel) {
     return Dismissible(
       key: Key(item.productId + (item.size ?? '') + (item.color ?? '')),
       direction: DismissDirection.endToStart,
@@ -267,9 +270,9 @@ class _CartViewState extends State<CartView> {
         viewModel.removeItem(index);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('ምርት ከግብይት ዕቃ ተወግዷል'),
+            content: Text(profileViewModel.isAmharic ? 'ምርት ከግብይት ዕቃ ተወግዷል' : 'Item removed from cart'),
             action: SnackBarAction(
-              label: 'ቀልብስ',
+              label: profileViewModel.isAmharic ? 'ቀልብስ' : 'Undo',
               onPressed: () {
                 // Implement undo functionality if needed
                 viewModel.loadCart();
@@ -326,7 +329,7 @@ class _CartViewState extends State<CartView> {
                 if (item.size != null) ...[
                   const SizedBox(height: 4),
                   Text(
-                    'ልኬት፡ ${item.size}',
+                    profileViewModel.isAmharic ? 'ልኬት፡ ${item.size}' : 'Size: ${item.size}',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey.shade600,

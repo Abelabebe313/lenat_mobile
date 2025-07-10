@@ -118,7 +118,7 @@ class CartService {
   }
 
   // Calculate cart totals
-  Future<CartTotals> calculateTotals({double deliveryFeePerKm = 200.0, double distanceInKm = 1.0}) async {
+  Future<CartTotals> calculateTotals({double deliveryFeePerKm = 100.0, double distanceInKm = 1.0}) async {
     try {
       final List<CartItemModel> items = await getCartItems();
       

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lenat_mobile/core/colors.dart';
+import 'package:lenat_mobile/view/trivia/trivia_viewmodel.dart';
+import 'package:provider/provider.dart';
 
 class ResultScreen extends StatelessWidget {
   final bool isWinner;
@@ -8,7 +10,7 @@ class ResultScreen extends StatelessWidget {
   final VoidCallback onPlayAgain;
 
   const ResultScreen({
-    super.key, 
+    super.key,
     required this.isWinner,
     required this.score,
     required this.totalQuestions,
@@ -18,7 +20,7 @@ class ResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final double passPercentage = (score / totalQuestions) * 100;
-    
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
@@ -62,9 +64,9 @@ class ResultScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                isWinner 
-                  ? 'በጣም ጥሩ ነው! ሁሉንም ጥያቄዎች በትክክል መለሱ።'
-                  : 'ደግመህ ሞክር። ለሚቀጥለው ጊዜ የተሻለ ውጤት ያገኛለህ።',
+                isWinner
+                    ? 'በጣም ጥሩ ነው! ሁሉንም ጥያቄዎች በትክክል መለሱ።'
+                    : 'ደግመህ ሞክር። ለሚቀጥለው ጊዜ የተሻለ ውጤት ያገኛለህ።',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 14,
@@ -103,6 +105,10 @@ class ResultScreen extends StatelessWidget {
                 width: MediaQuery.of(context).size.width * 0.7,
                 child: OutlinedButton(
                   onPressed: () {
+                    // Refresh trivia list before popping to show newly unlocked trivias
+                    final triviaViewModel =
+                        Provider.of<TriviaViewModel>(context, listen: false);
+                    triviaViewModel.loadTrivia(context);
                     Navigator.of(context).pop();
                   },
                   style: OutlinedButton.styleFrom(

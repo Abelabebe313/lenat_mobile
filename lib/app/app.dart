@@ -6,6 +6,7 @@ import 'package:lenat_mobile/view/ai_chat/ai_chat_viewmodel.dart';
 import 'package:lenat_mobile/view/auth/auth_viewmodel.dart';
 import 'package:lenat_mobile/view/consult/consult_page_viewmodel.dart';
 import 'package:lenat_mobile/view/content/content_feed_viewmodel.dart';
+import 'package:lenat_mobile/view/market/checkout/checkout_viewmodel.dart';
 import 'package:lenat_mobile/view/market/market_viewmodel.dart';
 import 'package:lenat_mobile/view/home/home_viewmodel.dart';
 import 'package:lenat_mobile/view/media/media_viewmodel.dart';
@@ -43,6 +44,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => HomeViewModel()),
         ChangeNotifierProvider(create: (_) => PremiumViewModel()),
         ChangeNotifierProvider(create: (_) => CartViewModel()),
+        ChangeNotifierProvider(create: (_) => CheckoutViewModel()),
       ],
       child: GraphQLProvider(
         client: ValueNotifier(

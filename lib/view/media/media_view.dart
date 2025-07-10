@@ -170,8 +170,8 @@ class _MediaViewState extends State<MediaView> {
               const SizedBox(height: 16),
               Text(
                 profileViewModel.isAmharic
-                    ? "የተወዳጅ ወይም የተመዘገበ ሚድያ"
-                    : "Liked or Bookmarked Content",
+                    ? "የተወዳጅ ሚድያ"
+                    : "Bookmarked Content",
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,

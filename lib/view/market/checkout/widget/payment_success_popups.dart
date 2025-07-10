@@ -3,7 +3,12 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:lenat_mobile/core/colors.dart';
 
 class PaymentSuccessPopupContent extends StatelessWidget {
-  const PaymentSuccessPopupContent({super.key});
+  final String? orderId;
+
+  const PaymentSuccessPopupContent({
+    super.key,
+    this.orderId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -30,16 +35,19 @@ class PaymentSuccessPopupContent extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                "#12545",
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey,
+              if (orderId != null && orderId != 'unknown') ...[
+                Text(
+                  "ትእዛዝ ቁጥር: #$orderId",
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 6),
+                const SizedBox(height: 6),
+              ],
               const Text(
-                "Lorem ipsum dolor sit amet \nconsectetur.In ut lorem est pharetra \nturpis mi facilisi sed.Mi duis aliquet.",
+                "ትእዛዝዎ በተሳካ ሁኔታ ተመዝግቧል። በቅርብ ጊዜ ውስጥ የእኛ ቡድን ያገኝዎታል። ስለ ትእዛዝዎ ለማንኛውም ጥያቄ የደንበኛ አገልግሎት ቡድናችንን ያነጋግሩ።",
                 textAlign: TextAlign.start,
                 style: TextStyle(
                   fontSize: 14,
@@ -51,32 +59,32 @@ class PaymentSuccessPopupContent extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 60,
-                    vertical: 12,
-                  ),
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: Text(
-                  "ወደ መነሻ ይመለሱ",
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
-                    fontFamily: 'NotoSansEthiopic',
-                  ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 60,
+                  vertical: 12,
+                ),
+              ),
+              child: const Text(
+                "ወደ መነሻ ይመለሱ",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                  fontFamily: 'NotoSansEthiopic',
                 ),
               ),
             ),
+          ),
         ],
       ),
     );
