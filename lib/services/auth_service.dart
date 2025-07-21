@@ -347,8 +347,7 @@ class AuthService {
         }
       ''';
       // Use the extension method for automatic token refresh
-      final result = await client
-          .mutate(MutationOptions(document: gql(query)));
+      final result = await client.mutate(MutationOptions(document: gql(query)));
 
       return result.data?['auth_google']?['url'];
     } catch (e) {

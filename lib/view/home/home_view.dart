@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:lenat_mobile/core/colors.dart';
 import 'package:lenat_mobile/view/home/home_viewmodel.dart';
+import 'package:lenat_mobile/view/profile/profile_viewmodel.dart';
 import 'package:lenat_mobile/view/home/widget/premium_content_container.dart';
 import 'package:lenat_mobile/app/service_locator.dart';
 import 'package:lenat_mobile/services/auth_service.dart';
 import 'package:provider/provider.dart';
+import 'dart:math' as math;
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -35,51 +37,114 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
+    final profileViewModel = Provider.of<ProfileViewModel>(context);
+
     return Consumer<HomeViewModel>(
       builder: (context, viewModel, child) {
         return Scaffold(
           backgroundColor: Colors.white,
-          appBar: AppBar(
-            backgroundColor: Colors.white,
-            elevation: 0,
-            automaticallyImplyLeading: false,
-            title: Text(
-              isFemale ? 'እንደምን አደርሽ' : "እንደምን አደርክ",
-              style: TextStyle(
-                color: Colors.black,
-                fontFamily: 'NotoSansEthiopic',
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            actions: [
-              GestureDetector(
-                onTap: () {
-                  Navigator.pushNamed(context, '/notifications');
-                },
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedNotification02,
-                  color: Colors.black,
-                  size: 24.0,
-                ),
-              ),
-              const SizedBox(width: 16),
-            ],
-          ),
           body: ListView(
             children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.only(
-                  left: 12.0,
-                  bottom: 10.0,
-                  top: 15.0,
-                ),
-                child: Text(
-                  "የሳምንቱ ዋነኛ ነገር",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18.0,
+              const SizedBox(height: 10.0),
+              // =============  Header ==============
+              Stack(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.115,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          child: RichText(
+                              text: TextSpan(
+                            // text: isFemale ? 'እንደምን አደርሽ\n' : "እንደምን አደርክ\n",
+                            text: profileViewModel.isAmharic ? "ሰላም\n" : "Hello\n",
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                              fontFamily: 'NotoSansEthiopic',
+                              fontWeight: FontWeight.w500,
+                              fontSize: 18.0,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: profileViewModel.currentUser?.fullName ??
+                                    '',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.black,
+                                  fontSize: 28.0,
+                                ),
+                              ),
+                            ],
+                          )),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.pushNamed(context, '/notifications');
+                          },
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedNotification02,
+                            color: Colors.black,
+                            size: 24.0,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
+                  Positioned(
+                    bottom: 0,
+                    left: 24,
+                    child: Container(
+                      width: 110.0,
+                      height: 40.0,
+                      transform: Matrix4.rotationZ(-0.1),
+                      decoration: BoxDecoration(
+                        color: Color(0xFFD5E5F7),
+                        borderRadius: BorderRadius.circular(20.0),
+                      ),
+                      child: Center(
+                        child: Text(
+                          profileViewModel.isAmharic ? "ሳምንቱ 10" : "Week 10",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16.0,
+                            color: Primary,
+                            fontFamily: 'NotoSansEthiopic',
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+
+              // =============  weekly ==============
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 20.0, vertical: 20.0),
+                child: Row(
+                  spacing: 10.0,
+                  children: [
+                    Text(
+                      profileViewModel.isAmharic ? "የሳምንቱ ዋነኛ ነገር" : "Weekly Highlights",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18.0,
+                      ),
+                    ),
+                    Transform.rotate(
+                      angle: math.pi / 0.7,
+                      child: Icon(
+                        Icons.subdirectory_arrow_left_rounded,
+                        size: 28.0,
+                        color: Primary,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               Container(
@@ -162,14 +227,14 @@ class _HomeViewState extends State<HomeView> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "abc",
+                              profileViewModel.isAmharic ? "መዝገብ" : "Book",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 20.0,
                               ),
                             ),
                             Text(
-                              "Lorem ipsum dolor sit amet consectetur. Sagittis id libero.Lorem ipsum dolor sit amet consectetur. Sagittis id libero.",
+                              profileViewModel.isAmharic ? "ከእኛ ጋር የግል ምክር ለማግኘት የተለያዩ ባለሞያዎች ጋር የተወሰነ ቀን ይዘው ይግቡ።" : "Book an appointment with our experts to get personalized advice.",
                             ),
                             SizedBox(
                               height: 10.0,
@@ -186,7 +251,7 @@ class _HomeViewState extends State<HomeView> {
                                 ),
                               ),
                               child: Text(
-                                "ተጨማሪ ያንብቡ",
+                                profileViewModel.isAmharic ? "ቀጠሮ ያዝ" : "Book",
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
@@ -214,20 +279,22 @@ class _HomeViewState extends State<HomeView> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "abc",
+                              profileViewModel.isAmharic ? "መማር" : "Learn",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 20.0,
                               ),
                             ),
                             Text(
-                              "Lorem ipsum dolor sit amet consectetur. Sagittis id libero.Lorem ipsum dolor sit amet consectetur. Sagittis id libero.",
+                              profileViewModel.isAmharic ? "ለእርሶ የተመረጡ ትምርታዊ ጥያቄዎች ይጫወቱ: አዲስ እውቀት ይጨብጡ" : "Play our trivia game to test your knowledge and learn new things.",
                             ),
                             SizedBox(
                               height: 10.0,
                             ),
                             ElevatedButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                Navigator.pushNamed(context, '/trivia');
+                              },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Primary,
                                 shape: RoundedRectangleBorder(
@@ -238,7 +305,7 @@ class _HomeViewState extends State<HomeView> {
                                 ),
                               ),
                               child: Text(
-                                "ተጨማሪ ያንብቡ",
+                                profileViewModel.isAmharic ? "ጨዋታ ጀመር" : "Play",
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
@@ -289,13 +356,14 @@ class _HomeViewState extends State<HomeView> {
             ],
           ),
           floatingActionButton: FloatingActionButton(
-            backgroundColor: Primary,
+            backgroundColor: Color(0xFF9747FF),
             onPressed: () {
               Navigator.pushNamed(context, "/ai_chat");
             },
-            child: Icon(
-              Icons.chat_bubble_outline,
+            child: HugeIcon(
+              icon: HugeIcons.strokeRoundedRobotic,
               color: Colors.white,
+              size: 32.0,
             ),
           ),
         );

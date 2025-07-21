@@ -148,7 +148,7 @@ class _MediaViewState extends State<MediaView> {
                   scrollDirection: Axis.horizontal,
                   itemCount: mediaCategories.length,
                   itemBuilder: (context, index) {
-                    return _mediaCatagotyCard(mediaCategories[index]);
+                    return _mediaCatagotyCard(mediaCategories[index], index);
                   },
                 ),
               ),
@@ -169,9 +169,7 @@ class _MediaViewState extends State<MediaView> {
               ),
               const SizedBox(height: 16),
               Text(
-                profileViewModel.isAmharic
-                    ? "የተወዳጅ ሚድያ"
-                    : "Bookmarked Content",
+                profileViewModel.isAmharic ? "የተወዳጅ ሚድያ" : "Bookmarked Content",
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -301,7 +299,7 @@ class _MediaViewState extends State<MediaView> {
     );
   }
 
-  Widget _mediaCatagotyCard(Map<String, dynamic> category) {
+  Widget _mediaCatagotyCard(Map<String, dynamic> category, int index) {
     return GestureDetector(
       onTap: () {
         // Navigator.pushNamed(context, '/content_feed');
@@ -328,7 +326,7 @@ class _MediaViewState extends State<MediaView> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Image.asset(
-                  category['image'] ?? 'assets/images/default.png',
+                  'assets/images/${index + 1}.jpg',
                   fit: BoxFit.cover,
                   width: 200,
                   height: 200,
