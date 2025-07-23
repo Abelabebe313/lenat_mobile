@@ -255,46 +255,46 @@ class _ConsultViewState extends State<ConsultView> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 8.0,
-                            ),
-                            backgroundColor: viewModel.choosenPlace == "TEXT"
-                                ? Color(0xFF3389E7)
-                                : Colors.white, // Use your primary blue
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              viewModel.choosenPlace = "TEXT";
-                            });
-                          },
-                          icon: viewModel.choosenPlace == "TEXT"
-                              ? Icon(
-                                  Icons.check_circle,
-                                  color: viewModel.choosenPlace == "TEXT"
-                                      ? Colors.white
-                                      : Colors.transparent,
-                                  size: 20,
-                                )
-                              : null,
-                          label: Text(
-                            'በቻት',
-                            style: TextStyle(
-                              fontFamily: 'NotoSansEthiopic',
-                              fontSize: 16,
-                              color: viewModel.choosenPlace == "TEXT"
-                                  ? Colors.white
-                                  : Colors.black,
-                            ),
-                          ),
-                        ),
-                      ),
+                      // const SizedBox(width: 16),
+                      // Expanded(
+                      //   child: ElevatedButton.icon(
+                      //     style: ElevatedButton.styleFrom(
+                      //       padding: const EdgeInsets.symmetric(
+                      //         vertical: 8.0,
+                      //       ),
+                      //       backgroundColor: viewModel.choosenPlace == "TEXT"
+                      //           ? Color(0xFF3389E7)
+                      //           : Colors.white, // Use your primary blue
+                      //       shape: RoundedRectangleBorder(
+                      //         borderRadius: BorderRadius.circular(16),
+                      //       ),
+                      //     ),
+                      //     onPressed: () {
+                      //       setState(() {
+                      //         viewModel.choosenPlace = "TEXT";
+                      //       });
+                      //     },
+                      //     icon: viewModel.choosenPlace == "TEXT"
+                      //         ? Icon(
+                      //             Icons.check_circle,
+                      //             color: viewModel.choosenPlace == "TEXT"
+                      //                 ? Colors.white
+                      //                 : Colors.transparent,
+                      //             size: 20,
+                      //           )
+                      //         : null,
+                      //     label: Text(
+                      //       'በቻት',
+                      //       style: TextStyle(
+                      //         fontFamily: 'NotoSansEthiopic',
+                      //         fontSize: 16,
+                      //         color: viewModel.choosenPlace == "TEXT"
+                      //             ? Colors.white
+                      //             : Colors.black,
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
                     ],
                   ),
                   const SizedBox(height: 8),
