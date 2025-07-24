@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lenat_mobile/core/colors.dart';
 import 'package:lenat_mobile/view/auth/auth_viewmodel.dart';
@@ -23,6 +24,33 @@ class _LoginViewState extends State<LoginView> {
   void dispose() {
     _emailController.dispose();
     super.dispose();
+  }
+
+  String? _validateEmailOrPhone(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'እባክዎ ኢሜይል ያስገቡ';
+    }
+    final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+');
+    final phoneRegex = RegExp(r'^(09|07)\d{8}');
+    if (emailRegex.hasMatch(value)) {
+      return null;
+    } else if (phoneRegex.hasMatch(value)) {
+      // Valid phone
+      return null;
+    } else {
+      return 'እባክዎ ትክክለኛ ኢሜይል ወይም ስልክ ቁጥር ያስገቡ';
+    }
+  }
+
+  String _normalizePhoneOrEmail(String value) {
+    value = value.trim();
+    final phoneRegex = RegExp(r'^(09|07)\d{8}');
+    if (phoneRegex.hasMatch(value)) {
+      // Remove leading 0 and add +251
+      return '+251' + value.substring(1);
+    }
+    // If already in +251 format or email, return as is
+    return value;
   }
 
   @override
@@ -119,19 +147,11 @@ class _LoginViewState extends State<LoginView> {
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
                               decoration: InputDecoration(
-                                hintText: "email@example.com",
+                                hintText: "email@example.com or 09... or  07..",
                                 hintStyle: hintStyle,
                                 border: InputBorder.none,
                               ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'እባክዎ ኢሜይል ያስገቡ';
-                                }
-                                if (!value.contains('@')) {
-                                  return 'እባክዎ ትክክለኛ ኢሜይል ያስገቡ';
-                                }
-                                return null;
-                              },
+                              validator: _validateEmailOrPhone,
                             ),
                           ),
                         ],
@@ -146,19 +166,21 @@ class _LoginViewState extends State<LoginView> {
                               if (_formKey.currentState!.validate()) {
                                 setState(() => _loading = true);
                                 try {
-                                  final email = _emailController.text.trim();
-                                  print('Sending OTP to email: $email');
-                                  await viewModel.getAuthOtp(email);
+                                  String input = _emailController.text.trim();
+                                  final normalized =
+                                      _normalizePhoneOrEmail(input);
+                                  print('Sending OTP to: ' + normalized);
+                                  await viewModel.getAuthOtp(normalized);
                                   if (context.mounted) {
-                                    print(
-                                        'Navigating to verification with email: $email');
+                                    print('Navigating to verification with: ' +
+                                        normalized);
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
                                             const VerificationView(),
-                                        settings:
-                                            RouteSettings(arguments: email),
+                                        settings: RouteSettings(
+                                            arguments: normalized),
                                       ),
                                     );
                                   }
@@ -249,15 +271,67 @@ class _LoginViewState extends State<LoginView> {
                           onTap: () async {
                             final googleUrl = await viewModel.getGoogleUrl();
                             if (googleUrl != null) {
-                              // final isNewUser = await viewModel.handleGoogleSignIn(googleUrl);
-                              await launchUrl(
-                                Uri.parse(googleUrl),
-                                mode: LaunchMode.externalApplication,
+                              String? authCode;
+                              await showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (context) {
+                                  return Dialog(
+                                    insetPadding: const EdgeInsets.all(16),
+                                    child: SizedBox(
+                                      height: 600,
+                                      child: InAppWebView(
+                                        initialUrlRequest: URLRequest(
+                                            url: WebUri(Uri.parse(googleUrl)
+                                                .toString())),
+                                        initialOptions:
+                                            InAppWebViewGroupOptions(
+                                          crossPlatform: InAppWebViewOptions(
+                                            javaScriptEnabled: true,
+                                          ),
+                                        ),
+                                        onLoadStart: (controller, url) async {
+                                          if (url != null &&
+                                              url
+                                                  .toString()
+                                                  .contains("code=") &&
+                                              url.toString().contains(
+                                                  "/auth/google/callback")) {
+                                            final uri =
+                                                Uri.parse(url.toString());
+                                            authCode =
+                                                uri.queryParameters["code"];
+
+                                            if (authCode != null) {
+                                              Navigator.of(context)
+                                                  .pop(); // Close dialog
+                                            }
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                  );
+                                },
                               );
+
+                              if (authCode != null) {
+                                final isNewUser = await viewModel
+                                    .handleGoogleSignIn(authCode!);
+                                if (isNewUser) {
+                                  // Navigate to profile completion screen
+                                } else {
+                                  // Navigate to home screen
+                                }
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text(
+                                          "Failed to retrieve authorization code")),
+                                );
+                              }
                             } else {
-                              // Handle error
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
+                                const SnackBar(
                                     content:
                                         Text("Could not launch sign-in URL")),
                               );

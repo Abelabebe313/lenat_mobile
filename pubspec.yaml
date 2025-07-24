@@ -30,6 +30,7 @@ dependencies:
   flutter_html: ^3.0.0
   easy_image_viewer: ^1.5.1
   flutter_launcher_icons: ^0.14.4
+  flutter_inappwebview: ^6.1.5
 
 dev_dependencies:
   flutter_test:
