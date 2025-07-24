@@ -159,8 +159,8 @@ class _AIChatViewState extends State<AIChatView> {
                                           )
                                         : Text(
                                             item['content'],
-                                            maxLines: 5,
-                                            overflow: TextOverflow.ellipsis,
+                                            // maxLines: 5,
+                                            // overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
                                               color: isFromUser
                                                   ? Colors.white

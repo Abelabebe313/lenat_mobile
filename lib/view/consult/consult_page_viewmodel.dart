@@ -6,7 +6,7 @@ import 'package:lenat_mobile/services/auth_service.dart';
 class ConsultPageViewModel extends ChangeNotifier {
   final _authService = locator<AuthService>();
   final TextEditingController patientNotesController = TextEditingController();
-  String choosenPlace = "TEXT";
+  String choosenPlace = "CALL";
   String selectedDisability = "ጉበት";
   String selectedSurgery = "ትርፍ አንጀት";
   final List<String> disabilities = [
