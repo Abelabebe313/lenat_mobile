@@ -263,122 +263,122 @@ class _LoginViewState extends State<LoginView> {
                       ],
                     ),
                     // i want to show a google svg to login with google
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      spacing: 16,
-                      children: [
-                        GestureDetector(
-                          onTap: () async {
-                            final googleUrl = await viewModel.getGoogleUrl();
-                            if (googleUrl != null) {
-                              String? authCode;
-                              await showDialog(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (context) {
-                                  return Dialog(
-                                    insetPadding: const EdgeInsets.all(16),
-                                    child: SizedBox(
-                                      height: 600,
-                                      child: InAppWebView(
-                                        initialUrlRequest: URLRequest(
-                                            url: WebUri(Uri.parse(googleUrl)
-                                                .toString())),
-                                        initialOptions:
-                                            InAppWebViewGroupOptions(
-                                          crossPlatform: InAppWebViewOptions(
-                                            javaScriptEnabled: true,
-                                          ),
-                                        ),
-                                        onLoadStart: (controller, url) async {
-                                          if (url != null &&
-                                              url
-                                                  .toString()
-                                                  .contains("code=") &&
-                                              url.toString().contains(
-                                                  "/auth/google/callback")) {
-                                            final uri =
-                                                Uri.parse(url.toString());
-                                            authCode =
-                                                uri.queryParameters["code"];
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.center,
+                    //   spacing: 16,
+                    //   children: [
+                    //     GestureDetector(
+                    //       onTap: () async {
+                    //         final googleUrl = await viewModel.getGoogleUrl();
+                    //         if (googleUrl != null) {
+                    //           String? authCode;
+                    //           await showDialog(
+                    //             context: context,
+                    //             barrierDismissible: false,
+                    //             builder: (context) {
+                    //               return Dialog(
+                    //                 insetPadding: const EdgeInsets.all(16),
+                    //                 child: SizedBox(
+                    //                   height: 600,
+                    //                   child: InAppWebView(
+                    //                     initialUrlRequest: URLRequest(
+                    //                         url: WebUri(Uri.parse(googleUrl)
+                    //                             .toString())),
+                    //                     initialOptions:
+                    //                         InAppWebViewGroupOptions(
+                    //                       crossPlatform: InAppWebViewOptions(
+                    //                         javaScriptEnabled: true,
+                    //                       ),
+                    //                     ),
+                    //                     onLoadStart: (controller, url) async {
+                    //                       if (url != null &&
+                    //                           url
+                    //                               .toString()
+                    //                               .contains("code=") &&
+                    //                           url.toString().contains(
+                    //                               "/auth/google/callback")) {
+                    //                         final uri =
+                    //                             Uri.parse(url.toString());
+                    //                         authCode =
+                    //                             uri.queryParameters["code"];
 
-                                            if (authCode != null) {
-                                              Navigator.of(context)
-                                                  .pop(); // Close dialog
-                                            }
-                                          }
-                                        },
-                                      ),
-                                    ),
-                                  );
-                                },
-                              );
+                    //                         if (authCode != null) {
+                    //                           Navigator.of(context)
+                    //                               .pop(); // Close dialog
+                    //                         }
+                    //                       }
+                    //                     },
+                    //                   ),
+                    //                 ),
+                    //               );
+                    //             },
+                    //           );
 
-                              if (authCode != null) {
-                                final isNewUser = await viewModel
-                                    .handleGoogleSignIn(authCode!);
-                                if (isNewUser) {
-                                  // Navigate to profile completion screen
-                                } else {
-                                  // Navigate to home screen
-                                }
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text(
-                                          "Failed to retrieve authorization code")),
-                                );
-                              }
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content:
-                                        Text("Could not launch sign-in URL")),
-                              );
-                            }
-                          },
-                          child: SizedBox(
-                            child: SvgPicture.asset(
-                              'assets/svg/google.svg',
-                              width: 32,
-                              height: 32,
-                            ),
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () async {
-                            final phone = "+251917914528";
-                            try {
-                              await viewModel.startTelegramLogin(phone);
+                    //           if (authCode != null) {
+                    //             final isNewUser = await viewModel
+                    //                 .handleGoogleSignIn(authCode!);
+                    //             if (isNewUser) {
+                    //               // Navigate to profile completion screen
+                    //             } else {
+                    //               // Navigate to home screen
+                    //             }
+                    //           } else {
+                    //             ScaffoldMessenger.of(context).showSnackBar(
+                    //               const SnackBar(
+                    //                   content: Text(
+                    //                       "Failed to retrieve authorization code")),
+                    //             );
+                    //           }
+                    //         } else {
+                    //           ScaffoldMessenger.of(context).showSnackBar(
+                    //             const SnackBar(
+                    //                 content:
+                    //                     Text("Could not launch sign-in URL")),
+                    //           );
+                    //         }
+                    //       },
+                    //       child: SizedBox(
+                    //         child: SvgPicture.asset(
+                    //           'assets/svg/google.svg',
+                    //           width: 32,
+                    //           height: 32,
+                    //         ),
+                    //       ),
+                    //     ),
+                    //     GestureDetector(
+                    //       onTap: () async {
+                    //         final phone = "+251917914528";
+                    //         try {
+                    //           await viewModel.startTelegramLogin(phone);
 
-                              final isNewUser =
-                                  await viewModel.completeTelegramLogin();
-                              if (context.mounted) {
-                                if (isNewUser) {
-                                  Navigator.pushReplacementNamed(
-                                      context, '/gender-selection');
-                                } else {
-                                  Navigator.pushReplacementNamed(
-                                      context, '/main');
-                                }
-                              }
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content: Text("Telegram login failed: $e")),
-                              );
-                            }
-                          },
-                          child: SizedBox(
-                            child: SvgPicture.asset(
-                              'assets/svg/telegram.svg',
-                              width: 40,
-                              height: 40,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                    //           final isNewUser =
+                    //               await viewModel.completeTelegramLogin();
+                    //           if (context.mounted) {
+                    //             if (isNewUser) {
+                    //               Navigator.pushReplacementNamed(
+                    //                   context, '/gender-selection');
+                    //             } else {
+                    //               Navigator.pushReplacementNamed(
+                    //                   context, '/main');
+                    //             }
+                    //           }
+                    //         } catch (e) {
+                    //           ScaffoldMessenger.of(context).showSnackBar(
+                    //             SnackBar(
+                    //                 content: Text("Telegram login failed: $e")),
+                    //           );
+                    //         }
+                    //       },
+                    //       child: SizedBox(
+                    //         child: SvgPicture.asset(
+                    //           'assets/svg/telegram.svg',
+                    //           width: 40,
+                    //           height: 40,
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
                     const SizedBox(height: 30),
                   ],
                 ),

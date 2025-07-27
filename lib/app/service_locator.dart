@@ -17,15 +17,16 @@ void setupLocator() {
   locator
       .registerLazySingleton<LocalStorageService>(() => LocalStorageService());
   locator.registerLazySingleton(() => MinioService(
-        endpoint: '92.205.167.80:9001/',
+        endpoint: '92.205.167.80:9000',
         accessKey: 'lenat',
         secretKey: 'lenat123456789',
         bucketName: 'users',
-        // useSSL: false,
+        useSSL: false,
       ));
   locator.registerLazySingleton<FeedPostService>(() => FeedPostService());
   locator.registerLazySingleton<TriviaService>(() => TriviaService());
-  locator.registerLazySingleton<TriviaProgressService>(() => TriviaProgressService());
+  locator.registerLazySingleton<TriviaProgressService>(
+      () => TriviaProgressService());
   locator.registerLazySingleton<MarketPlaceService>(() => MarketPlaceService());
   locator.registerLazySingleton<CartService>(() => CartService());
 }

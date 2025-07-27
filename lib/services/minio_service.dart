@@ -58,6 +58,7 @@ class MinioService {
       if (currentUser == null || currentUser.id == null) {
         throw Exception('User not found');
       }
+      print('currentUser: ${currentUser.id}');
 
       final fileName =
           '${currentUser.id}/${DateTime.now().millisecondsSinceEpoch}${path.extension(file.path)}';

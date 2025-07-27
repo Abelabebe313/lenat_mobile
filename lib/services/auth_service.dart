@@ -336,151 +336,6 @@ class AuthService {
     }
   }
 
-  Future<String?> getGoogleAuthUrl() async {
-    try {
-      final client = await GraphQLService.getClient();
-      const query = r'''
-        mutation {
-          auth_google(redirect_uri: "com.example.lenat_mobile:/oauth2redirect") {
-            url
-          }
-        }
-      ''';
-      // Use the extension method for automatic token refresh
-      final result = await client.mutate(MutationOptions(document: gql(query)));
-
-      return result.data?['auth_google']?['url'];
-    } catch (e) {
-      print('Error getting Google auth URL: $e');
-      rethrow;
-    }
-  }
-
-  Future<Map<String, dynamic>?> handleGoogleCallback(String code) async {
-    try {
-      final client = await GraphQLService.getClient();
-      final mutation = r'''
-        mutation($code: String!) {
-          auth_google_callback(code: $code) {
-            access_token
-            refresh_token
-            new_user
-            role
-            roles
-            phone_number
-            id
-            email
-          }
-        }
-      ''';
-      // Use the extension method for automatic token refresh
-      final result = await client.mutate(MutationOptions(
-        document: gql(mutation),
-        variables: {'code': code},
-      ));
-
-      final data = result.data?['auth_google_callback'];
-      if (data != null) {
-        // Store tokens securely
-        await _secureStorage.write(
-            key: 'access_token', value: data['access_token']);
-        await _secureStorage.write(
-            key: 'refresh_token', value: data['refresh_token']);
-
-        // Fetch complete user data
-        final completeUser = await fetchCompleteUserData(data['id']);
-        if (completeUser != null) {
-          return {
-            ...data,
-            'complete_user': completeUser.toJson(),
-          };
-        }
-      }
-
-      return data;
-    } catch (e) {
-      print('Error handling Google callback: $e');
-      rethrow;
-    }
-  }
-
-  Future<Map<String, dynamic>?> startTelegramAuth(String phone) async {
-    try {
-      final client = await GraphQLService.getClient();
-      const mutation = r'''
-        mutation($phone: String!) {
-          auth_telegram(phone: $phone) {
-            ssid
-            tsession
-          }
-        }
-      ''';
-      // Use the extension method for automatic token refresh
-      final result = await client.mutate(MutationOptions(
-        document: gql(mutation),
-        variables: {
-          'phone': phone,
-        },
-      ));
-
-      return result.data?['auth_telegram'];
-    } catch (e) {
-      print('Error starting Telegram auth: $e');
-      rethrow;
-    }
-  }
-
-  Future<Map<String, dynamic>?> completeTelegramAuth(
-      String ssid, String tsession) async {
-    try {
-      final client = await GraphQLService.getClient();
-      const mutation = r'''
-        mutation($ssid: String!, $tsession: String!) {
-          auth_telegram_callback(ssid: $ssid, tsession: $tsession) {
-            access_token
-            refresh_token
-            new_user
-            role
-            roles
-            id
-            email
-          }
-        }
-      ''';
-      // Use the extension method for automatic token refresh
-      final result = await client.mutate(MutationOptions(
-        document: gql(mutation),
-        variables: {
-          'ssid': ssid,
-          'tsession': tsession,
-        },
-      ));
-
-      final data = result.data?['auth_telegram_callback'];
-      if (data != null) {
-        // Store tokens securely
-        await _secureStorage.write(
-            key: 'access_token', value: data['access_token']);
-        await _secureStorage.write(
-            key: 'refresh_token', value: data['refresh_token']);
-
-        // Fetch complete user data
-        final completeUser = await fetchCompleteUserData(data['id']);
-        if (completeUser != null) {
-          return {
-            ...data,
-            'complete_user': completeUser.toJson(),
-          };
-        }
-      }
-
-      return data;
-    } catch (e) {
-      print('Error completing Telegram auth: $e');
-      rethrow;
-    }
-  }
-
   Future<void> logout() async {
     try {
       // Clear secure storage
@@ -495,6 +350,22 @@ class AuthService {
       print('Error during logout: $e');
       // Even if there's an error, try to clear as much as possible
       await _secureStorage.deleteAll();
+    }
+  }
+
+  Future<void> deleteAccount(String userId) async {
+    try {
+      final client = await GraphQLService.getClient();
+      const mutation = r'''
+        mutation delete_account {
+          delete_users(where: {id: {_eq: $userId}}) {
+            affected_rows
+          }
+        }
+      ''';
+    } catch (e) {
+      print('Error deleting account: $e');
+      rethrow;
     }
   }
 

@@ -88,21 +88,21 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
               const SizedBox(height: 20),
-              ListTile(
-                leading: const Icon(Icons.camera_alt),
-                title: Text(
-                  viewModel.isAmharic ? 'ካሜራ' : 'Camera',
-                  style: const TextStyle(fontFamily: 'NotoSansEthiopic'),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickImage(ImageSource.camera);
-                },
-              ),
+              // ListTile(
+              //   leading: const Icon(Icons.camera_alt),
+              //   title: Text(
+              //     viewModel.isAmharic ? 'ካሜራ' : 'Camera',
+              //     style: const TextStyle(fontFamily: 'NotoSansEthiopic'),
+              //   ),
+              //   onTap: () {
+              //     Navigator.pop(context);
+              //     _pickImage(ImageSource.camera);
+              //   },
+              // ),
               ListTile(
                 leading: const Icon(Icons.photo_library),
                 title: Text(
-                  viewModel.isAmharic ? 'ጋሌሪ' : 'Gallery',
+                  viewModel.isAmharic ? 'ጋለሪ ክፈት' : 'Open Gallery',
                   style: const TextStyle(fontFamily: 'NotoSansEthiopic'),
                 ),
                 onTap: () {

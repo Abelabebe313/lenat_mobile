@@ -72,7 +72,7 @@ class _VerificationViewState extends State<VerificationView> {
     final viewModel = Provider.of<AuthViewModel>(context);
     final profileViewModel = Provider.of<ProfileViewModel>(context);
 
-    print('Verification view - Email received: $email'); // Debug print
+    print('Verification view - received: $email'); // Debug print
 
     // If email is null, try to get it from SharedPreferences
     if (email == null) {
@@ -98,7 +98,7 @@ class _VerificationViewState extends State<VerificationView> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text(
-                "Error: Missing email",
+                "Error: Missing input",
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -199,7 +199,7 @@ class _VerificationViewState extends State<VerificationView> {
                       print('OTP entered: $value');
                       setState(() => _loading = true);
                       try {
-                        print('Verifying OTP for email: $email');
+                        print('Verifying OTP for: $email');
                         final user =
                             await viewModel.handleOtpCallback(email, value);
                         print(

@@ -23,8 +23,8 @@ class AuthViewModel extends ChangeNotifier {
     return result;
   }
 
-  Future<UserModel?> handleOtpCallback(String email, String otp) async {
-    final user = await _authService.handleOtpCallback(email, otp);
+  Future<UserModel?> handleOtpCallback(String emailorphone, String otp) async {
+    final user = await _authService.handleOtpCallback(emailorphone, otp);
     if (user != null) {
       _currentUser = user;
       notifyListeners();
@@ -54,55 +54,6 @@ class AuthViewModel extends ChangeNotifier {
     return _authService.isProfileComplete();
   }
 
-  Future<String?> getGoogleUrl() async {
-    final result = await _authService.getGoogleAuthUrl();
-    if (result == null) {
-      throw Exception('Failed to get Google Auth URL');
-    }
-    print('Google Auth URL: $result');
-    return result;
-  }
-
-  Future<bool> handleGoogleSignIn(String code) async {
-    final result = await _authService.handleGoogleCallback(code);
-
-    if (result != null) {
-      if (result['complete_user'] != null) {
-        _currentUser = UserModel.fromJson(result['complete_user']);
-        notifyListeners();
-      }
-      return result['new_user'] ?? false;
-    }
-
-    return false;
-  }
-
-  Future<void> startTelegramLogin(String phone) async {
-    final result = await _authService.startTelegramAuth(phone);
-    if (result != null) {
-      _ssid = result['ssid'];
-      _tsession = result['tsession'];
-    } else {
-      throw Exception('Telegram login initiation failed.');
-    }
-  }
-
-  Future<bool> completeTelegramLogin() async {
-    if (_ssid == null || _tsession == null) {
-      throw Exception("Missing session data");
-    }
-
-    final result = await _authService.completeTelegramAuth(_ssid!, _tsession!);
-    if (result != null) {
-      if (result['complete_user'] != null) {
-        _currentUser = UserModel.fromJson(result['complete_user']);
-        notifyListeners();
-      }
-      return result['new_user'] ?? false;
-    }
-
-    return false;
-  }
 
   Future<void> logout() async {
     try {

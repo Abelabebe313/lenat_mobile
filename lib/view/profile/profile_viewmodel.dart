@@ -4,6 +4,7 @@ import 'package:lenat_mobile/models/user_model.dart';
 import 'package:lenat_mobile/services/auth_service.dart';
 import 'package:lenat_mobile/services/minio_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'dart:async';
 
@@ -87,17 +88,30 @@ class ProfileViewModel extends ChangeNotifier {
       _isUploading = true;
       notifyListeners();
 
-      // Upload the image to MinIO and get the URL
-      _uploadedImageUrl = await _minioService.uploadFile(imageFile);
+      // 1. Get pre-signed upload URL from the server
+      // final fileName = path.basename(imageFile.path);
+      final profileUploadUrl =
+          await _authService.getProfileUploadUrl(imageFile.path);
+      
+      if (profileUploadUrl == null) throw Exception("Failed to get upload URL");
 
-      // Reload user data to get updated profile information
-      await loadUserData();
+      // 2. Upload to MinIO using pre-signed URL
+      final bytes = await imageFile.readAsBytes();
+      final response = await http.put(
+        Uri.parse(profileUploadUrl['url']),
+        body: bytes,
+        headers: {"Content-Type": "image/jpeg"},
+      );
+
+       // 3. Refresh user data so new image shows up
+      await refreshUserData();
 
       _isUploading = false;
       notifyListeners();
     } catch (e) {
       _isUploading = false;
       notifyListeners();
+      print('Error uploading profile image: $e');
       rethrow;
     }
   }
