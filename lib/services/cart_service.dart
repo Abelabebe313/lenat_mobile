@@ -18,7 +18,6 @@ class CartService {
       final List<dynamic> decodedData = jsonDecode(cartData);
       return decodedData.map((item) => CartItemModel.fromJson(item)).toList();
     } catch (e) {
-      print('Error getting cart items: $e');
       return [];
     }
   }
@@ -28,8 +27,8 @@ class CartService {
     try {
       final String encodedData = jsonEncode(items.map((item) => item.toJson()).toList());
       await _secureStorage.write(key: _cartKey, value: encodedData);
-    } catch (e) {
-      print('Error saving cart items: $e');
+      } 
+    catch (e) {      
     }
   }
 
@@ -67,7 +66,6 @@ class CartService {
 
       await saveCartItems(currentCart);
     } catch (e) {
-      print('Error adding to cart: $e');
     }
   }
 
@@ -87,7 +85,6 @@ class CartService {
         await saveCartItems(currentCart);
       }
     } catch (e) {
-      print('Error updating cart quantity: $e');
     }
   }
 

@@ -49,7 +49,6 @@ class AuthService {
 
       return result.data?['auth_otp']?['message'];
     } catch (e) {
-      print('Error sending OTP: $e');
       rethrow;
     }
   }
@@ -103,9 +102,7 @@ class AuthService {
 
         // Now fetch complete user data
         final completeUser = await fetchCompleteUserData(data['id']);
-        print('Complete user: $completeUser');
         if (completeUser != null) {
-          print('Complete user: $completeUser');
           return completeUser;
         }
 
@@ -115,7 +112,6 @@ class AuthService {
 
       return null;
     } catch (e) {
-      print('Error verifying OTP: $e');
       rethrow;
     }
   }
@@ -129,7 +125,6 @@ class AuthService {
       }
       return null;
     } catch (e) {
-      print('Error getting current user: $e');
       return null;
     }
   }
@@ -173,37 +168,40 @@ class AuthService {
         ),
       );
 
-      print('GraphQL query executed successfully');
-      print('Result data: ${result.data}');
-      print('Result loading: ${result.isLoading}');
-
       if (result.hasException) {
-        print('GraphQL exception: ${result.exception}');
-        print('GraphQL errors: ${result.exception?.graphqlErrors}');
         throw Exception(result.exception?.graphqlErrors.first.message ??
             'Failed to fetch user data');
       }
 
       final userData = result.data?['users_by_pk'];
-      print('User data fetched: $userData');
 
       if (userData == null) {
-        print('No user data found for userId: $userId');
-        print('Full result data: ${result.data}');
         return null;
       }
 
-      print('Fetched user data: $userData');
       final profile = userData['profile'];
       final media = profile?['media'];
       final patient = profile?['patient'];
+
+      // Get the existing user data to preserve the new_user flag
+      final existingUserDataStr = await _secureStorage.read(key: 'user_data');
+      bool isNewUser = false;
+      if (existingUserDataStr != null) {
+        try {
+          final existingUserData = jsonDecode(existingUserDataStr) as Map<String, dynamic>;
+          isNewUser = existingUserData['new_user'] as bool? ?? false;
+          print("isNewUser: $isNewUser");
+        } catch (e) {
+          print('Error parsing existing user data: $e');
+        }
+      }
 
       final transformedData = {
         'id': userData['id'],
         'email': userData['email'],
         'phone_number': userData['phone_number'],
         'role': 'user',
-        'new_user': false,
+        'new_user': isNewUser,
         'gender': profile?['gender'],
         'full_name': profile?['full_name'],
         'birth_date': profile?['birth_date'],
@@ -222,7 +220,6 @@ class AuthService {
 
       return UserModel.fromJson(transformedData);
     } catch (e) {
-      print('Error fetching complete user data: $e');
       return null;
     }
   }
@@ -345,9 +342,7 @@ class AuthService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
 
-      print('Logout completed - all local data cleared');
     } catch (e) {
-      print('Error during logout: $e');
       // Even if there's an error, try to clear as much as possible
       await _secureStorage.deleteAll();
     }
@@ -355,16 +350,30 @@ class AuthService {
 
   Future<void> deleteAccount(String userId) async {
     try {
-      final client = await GraphQLService.getClient();
+      final client = await GraphQLService.getClient(role: GraphQLService.roleMe);
       const mutation = r'''
-        mutation delete_account {
+        mutation delete_account($userId: uuid!) {
           delete_users(where: {id: {_eq: $userId}}) {
             affected_rows
           }
         }
       ''';
+      // print access token
+      final accessToken = await _secureStorage.read(key: 'access_token');
+      print("access token: $accessToken");
+      final result = await client.mutationWithTokenRefresh(
+        MutationOptions(
+          document: gql(mutation),
+          variables: {'userId': userId},
+        ),
+      );
+      print(result.data);
+      if (result.hasException) {
+        throw Exception(result.exception?.graphqlErrors.first.message ??
+            'Failed to delete account');
+      }
+      await logout();
     } catch (e) {
-      print('Error deleting account: $e');
       rethrow;
     }
   }
@@ -394,7 +403,6 @@ class AuthService {
 
       return result.data?['storage_profile_upload'];
     } catch (e) {
-      print('Error getting profile upload URL: $e');
       rethrow;
     }
   }

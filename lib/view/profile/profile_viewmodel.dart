@@ -140,4 +140,9 @@ class ProfileViewModel extends ChangeNotifier {
     _isAmharic = true; // Reset to default language
     notifyListeners();
   }
+
+  // Danger zone 
+  Future<void> deleteAccount(String userId) async {
+    await _authService.deleteAccount(userId);
+  }
 }

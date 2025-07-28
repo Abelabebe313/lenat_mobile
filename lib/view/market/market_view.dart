@@ -95,7 +95,11 @@ class _MarketViewState extends State<MarketView> {
   Widget build(BuildContext context) {
     final profileViewModel = Provider.of<ProfileViewModel>(context);
     final marketViewModel = Provider.of<MarketViewModel>(context);
-    final newArrival = marketViewModel.featuredProducts.last;
+    
+    // Check if featuredProducts is not empty before accessing last element
+    final newArrival = marketViewModel.featuredProducts.isNotEmpty 
+        ? marketViewModel.featuredProducts.last 
+        : null;
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
@@ -199,7 +203,7 @@ class _MarketViewState extends State<MarketView> {
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(10),
-                            child: marketViewModel.featuredProducts.isNotEmpty
+                            child: marketViewModel.featuredProducts.isNotEmpty && newArrival != null
                                 ? CachedNetworkImage(
                                     imageUrl: newArrival
                                             .productImages.last.medium.url ??
@@ -257,58 +261,59 @@ class _MarketViewState extends State<MarketView> {
                             ),
                           ),
                         ),
-                        Positioned(
-                          bottom: 10,
-                          left: 0,
-                          right: 0,
-                          child: Center(
-                            child: Container(
-                              height: 60,
-                              width: MediaQuery.of(context).size.width * 0.7,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
-                                children: [
-                                  Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        newArrival.name,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w400,
-                                          color: Colors.black,
+                        if (newArrival != null)
+                          Positioned(
+                            bottom: 10,
+                            left: 0,
+                            right: 0,
+                            child: Center(
+                              child: Container(
+                                height: 60,
+                                width: MediaQuery.of(context).size.width * 0.7,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          newArrival.name,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w400,
+                                            color: Colors.black,
+                                          ),
                                         ),
-                                      ),
-                                      Text(
-                                        profileViewModel.isAmharic
-                                            ? "${newArrival.price} ብር"
-                                            : "${newArrival.price} Birr",
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w700,
-                                          color: Colors.black,
+                                        Text(
+                                          profileViewModel.isAmharic
+                                              ? "${newArrival.price} ብር"
+                                              : "${newArrival.price} Birr",
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.black,
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                  GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              ProductDetailPage(
-                                                  product: newArrival),
-                                        ),
-                                      );
-                                    },
+                                      ],
+                                    ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                ProductDetailPage(
+                                                    product: newArrival),
+                                          ),
+                                        );
+                                      },
                                     child: Container(
                                       height: 40,
                                       width: 100,

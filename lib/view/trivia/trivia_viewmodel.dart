@@ -66,7 +66,6 @@ class TriviaViewModel extends ChangeNotifier {
 
       _error = e.toString();
       notifyListeners();
-      print('Error loading trivia: $e');
     }
   }
 

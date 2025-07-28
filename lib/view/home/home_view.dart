@@ -4,8 +4,6 @@ import 'package:lenat_mobile/core/colors.dart';
 import 'package:lenat_mobile/view/home/home_viewmodel.dart';
 import 'package:lenat_mobile/view/profile/profile_viewmodel.dart';
 import 'package:lenat_mobile/view/home/widget/premium_content_container.dart';
-import 'package:lenat_mobile/app/service_locator.dart';
-import 'package:lenat_mobile/services/auth_service.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 
@@ -17,19 +15,10 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  bool isFemale = true;
-
-  void getUser() async {
-    final _authService = locator<AuthService>();
-    final currentUser = await _authService.getCurrentUser();
-    isFemale = currentUser!.gender! == "female";
-    setState(() {});
-  }
 
   @override
   void initState() {
     super.initState();
-    getUser();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HomeViewModel>().getBlogs(context);
     });
@@ -58,7 +47,6 @@ class _HomeViewState extends State<HomeView> {
                           padding: const EdgeInsets.symmetric(horizontal: 20.0),
                           child: RichText(
                               text: TextSpan(
-                            // text: isFemale ? 'እንደምን አደርሽ\n' : "እንደምን አደርክ\n",
                             text: profileViewModel.isAmharic ? "ሰላም\n" : "Hello\n",
                             style: TextStyle(
                               color: Colors.grey[500],

@@ -38,6 +38,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
   late String selectedDay;
   late String selectedMonth;
   late String selectedYear;
+  bool isUnderAge = false;
 
   @override
   void initState() {
@@ -45,6 +46,25 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
     selectedDay = days[0];
     selectedMonth = months[0];
     selectedYear = years[0];
+    _checkAge();
+  }
+
+  void _checkAge() {
+    try {
+      final selectedDate = DateTime(
+        int.parse(selectedYear),
+        int.parse(selectedMonth),
+        int.parse(selectedDay),
+      );
+      final age = DateTime.now().difference(selectedDate).inDays ~/ 365;
+      setState(() {
+        isUnderAge = age < 18;
+      });
+    } catch (e) {
+      setState(() {
+        isUnderAge = false;
+      });
+    }
   }
 
   final List<String> options = [
@@ -314,35 +334,30 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                     children: [
                       // Day Selector
                       Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          decoration: BoxDecoration(
-                            color: TextFieldColor,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              dropdownColor: TextFieldColor,
-                              value: selectedDay,
-                              isExpanded: true,
-                              style: TextStyle(
-                                fontFamily: 'NotoSansEthiopic',
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black.withOpacity(0.5),
-                              ),
-                              icon: const Icon(Icons.keyboard_arrow_down),
-                              items: days.map((String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList(),
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  selectedDay = newValue!;
-                                });
-                              },
+                        child: GestureDetector(
+                          onTap: () => _showDayPicker(context),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: TextFieldColor,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    selectedDay,
+                                    style: TextStyle(
+                                      fontFamily: 'NotoSansEthiopic',
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.black.withOpacity(0.5),
+                                    ),
+                                  ),
+                                ),
+                                const Icon(Icons.keyboard_arrow_down),
+                              ],
                             ),
                           ),
                         ),
@@ -350,35 +365,30 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                       const SizedBox(width: 8),
                       // Month Selector
                       Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          decoration: BoxDecoration(
-                            color: TextFieldColor,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              dropdownColor: TextFieldColor,
-                              value: selectedMonth,
-                              isExpanded: true,
-                              style: TextStyle(
-                                fontFamily: 'NotoSansEthiopic',
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black.withOpacity(0.5),
-                              ),
-                              icon: const Icon(Icons.keyboard_arrow_down),
-                              items: months.map((String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList(),
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  selectedMonth = newValue!;
-                                });
-                              },
+                        child: GestureDetector(
+                          onTap: () => _showMonthPicker(context),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: TextFieldColor,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    selectedMonth,
+                                    style: TextStyle(
+                                      fontFamily: 'NotoSansEthiopic',
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.black.withOpacity(0.5),
+                                    ),
+                                  ),
+                                ),
+                                const Icon(Icons.keyboard_arrow_down),
+                              ],
                             ),
                           ),
                         ),
@@ -386,41 +396,61 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                       const SizedBox(width: 8),
                       // Year Selector
                       Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          decoration: BoxDecoration(
-                            color: TextFieldColor,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              dropdownColor: TextFieldColor,
-                              value: selectedYear,
-                              isExpanded: true,
-                              style: TextStyle(
-                                fontFamily: 'NotoSansEthiopic',
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black.withOpacity(0.5),
-                              ),
-                              icon: const Icon(Icons.keyboard_arrow_down),
-                              items: years.map((String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList(),
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  selectedYear = newValue!;
-                                });
-                              },
+                        child: GestureDetector(
+                          onTap: () => _showYearPicker(context),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: TextFieldColor,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    selectedYear,
+                                    style: TextStyle(
+                                      fontFamily: 'NotoSansEthiopic',
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.black.withOpacity(0.5),
+                                    ),
+                                  ),
+                                ),
+                                const Icon(Icons.keyboard_arrow_down),
+                              ],
                             ),
                           ),
                         ),
                       ),
                     ],
                   ),
+                  if (isUnderAge) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          color: Colors.red,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            profileViewModel.isAmharic
+                                ? "እባክዎ እድሜዎ ከ18 ዓመት በላይ መሆን አለበት"
+                                : "You must be at least 18 years old to register",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.red,
+                              fontFamily: 'NotoSansEthiopic',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
               const SizedBox(height: 20),
@@ -503,7 +533,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
 
               /// Continue button
               ElevatedButton(
-                onPressed: profileSetUpViewModel.isLoading
+                onPressed: (profileSetUpViewModel.isLoading || isUnderAge)
                     ? null
                     : () async {
                         try {
@@ -608,6 +638,243 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showYearPicker(BuildContext context) {
+    final profileViewModel = Provider.of<ProfileViewModel>(context, listen: false);
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: Text(
+            profileViewModel.isAmharic ? "ዓመት ይምረጡ" : "Select Year",
+            style: const TextStyle(
+              fontFamily: 'NotoSansEthiopic',
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Container(
+            width: double.maxFinite,
+            height: 300,
+            child: GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 2.5,
+              ),
+              itemCount: years.length,
+              itemBuilder: (context, index) {
+                final year = years[index];
+                final isSelected = year == selectedYear;
+                
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      selectedYear = year;
+                    });
+                    _checkAge();
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isSelected ? Primary : TextFieldColor,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isSelected ? Primary : Colors.grey.shade300,
+                        width: 1,
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        year,
+                        style: TextStyle(
+                          fontFamily: 'NotoSansEthiopic',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: isSelected ? Colors.white : Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                profileViewModel.isAmharic ? "ሰርዝ" : "Cancel",
+                style: const TextStyle(
+                  fontFamily: 'NotoSansEthiopic',
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showMonthPicker(BuildContext context) {
+    final profileViewModel = Provider.of<ProfileViewModel>(context, listen: false);
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: Text(
+            profileViewModel.isAmharic ? "ወር ይምረጡ" : "Select Month",
+            style: const TextStyle(
+              fontFamily: 'NotoSansEthiopic',
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Container(
+            width: double.maxFinite,
+            height: 200,
+            child: GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 2.5,
+              ),
+              itemCount: months.length,
+              itemBuilder: (context, index) {
+                final month = months[index];
+                final isSelected = month == selectedMonth;
+                
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      selectedMonth = month;
+                    });
+                    _checkAge();
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isSelected ? Primary : TextFieldColor,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isSelected ? Primary : Colors.grey.shade300,
+                        width: 1,
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        month,
+                        style: TextStyle(
+                          fontFamily: 'NotoSansEthiopic',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: isSelected ? Colors.white : Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                profileViewModel.isAmharic ? "ሰርዝ" : "Cancel",
+                style: const TextStyle(
+                  fontFamily: 'NotoSansEthiopic',
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showDayPicker(BuildContext context) {
+    final profileViewModel = Provider.of<ProfileViewModel>(context, listen: false);
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: Text(
+            profileViewModel.isAmharic ? "ቀን ይምረጡ" : "Select Day",
+            style: const TextStyle(
+              fontFamily: 'NotoSansEthiopic',
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Container(
+            width: double.maxFinite,
+            height: 300,
+            child: GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 5,
+                crossAxisSpacing: 4,
+                mainAxisSpacing: 4,
+                childAspectRatio: 1.2,
+              ),
+              itemCount: days.length,
+              itemBuilder: (context, index) {
+                final day = days[index];
+                final isSelected = day == selectedDay;
+                
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      selectedDay = day;
+                    });
+                    _checkAge();
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isSelected ? Primary : TextFieldColor,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isSelected ? Primary : Colors.grey.shade300,
+                        width: 1,
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        day,
+                        style: TextStyle(
+                          fontFamily: 'NotoSansEthiopic',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: isSelected ? Colors.white : Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                profileViewModel.isAmharic ? "ሰርዝ" : "Cancel",
+                style: const TextStyle(
+                  fontFamily: 'NotoSansEthiopic',
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

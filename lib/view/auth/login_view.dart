@@ -169,11 +169,8 @@ class _LoginViewState extends State<LoginView> {
                                   String input = _emailController.text.trim();
                                   final normalized =
                                       _normalizePhoneOrEmail(input);
-                                  print('Sending OTP to: ' + normalized);
                                   await viewModel.getAuthOtp(normalized);
                                   if (context.mounted) {
-                                    print('Navigating to verification with: ' +
-                                        normalized);
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(

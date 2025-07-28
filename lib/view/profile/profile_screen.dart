@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:lenat_mobile/core/colors.dart';
@@ -124,6 +125,7 @@ class _ProfilePageState extends State<ProfilePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       print("load user data");
       Provider.of<ProfileViewModel>(context, listen: false).loadUserData();
+      Provider.of<ProfileViewModel>(context, listen: false).refreshUserData();
     });
   }
 
@@ -181,51 +183,65 @@ class _ProfilePageState extends State<ProfilePage> {
           children: [
             GestureDetector(
               onTap: _showImagePickerBottomSheet,
-              child: viewModel.currentUser?.media?['url'] != null
-                  ? Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
+              child: Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: viewModel.isUploading
+                  ? const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    )
+                  : _selectedImage != null
+                      ? ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          image: _selectedImage != null
-                              ? DecorationImage(
-                                  image: FileImage(_selectedImage!),
-                                  fit: BoxFit.cover,
-                                )
-                              : DecorationImage(
-                                  image:
-                                      NetworkImage(viewModel.currentUser?.media?['url'] ?? ''),
-                                  fit: BoxFit.cover,
-                                )),
-                      child: viewModel.isUploading
-                          ? const Center(
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
+                          child: Image.file(
+                            _selectedImage!,
+                            fit: BoxFit.cover,
+                            width: 80,
+                            height: 80,
+                          ),
+                        )
+                      : (viewModel.currentUser?.media?['url'] != null &&
+                              viewModel.currentUser!.media!['url'].isNotEmpty)
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: CachedNetworkImage(
+                                imageUrl: viewModel.currentUser!.media!['url'],
+                                fit: BoxFit.cover,
+                                width: 80,
+                                height: 80,
+                                placeholder: (context, url) => const Center(
+                                  child: CircularProgressIndicator(color: Colors.white),
+                                ),
+                                errorWidget: (context, url, error) => Center(
+                                  child: Text(
+                                    viewModel.currentUser?.fullName?.substring(0, 1) ??
+                                        "",
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'NotoSansEthiopic',
+                                    ),
+                                  ),
+                                ),
                               ),
                             )
-                          : null,
-                    )
-                  : Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: Primary,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Center(
-                        child: Text(
-                          viewModel.currentUser?.fullName?.substring(0, 1) ??
-                              "",
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'NotoSansEthiopic',
-                          ),
-                        ),
-                      ),
-                    ),
+                          : Center(
+                              child: Text(
+                                viewModel.currentUser?.fullName?.substring(0, 1) ?? "",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'NotoSansEthiopic',
+                                ),
+                              ),
+                            ),
+              ),
             ),
             Positioned(
               bottom: 0,
@@ -559,7 +575,75 @@ class _ProfilePageState extends State<ProfilePage> {
       child: SizedBox(
         width: MediaQuery.of(context).size.width * 0.5,
         child: ElevatedButton(
-          onPressed: () {},
+          onPressed: () async {
+            // Show confirmation dialog
+            final shouldDelete = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                backgroundColor: Colors.white,
+                title: Text(
+                  viewModel.isAmharic ? 'አካውንት ሰርዝ' : 'Delete Account',
+                  style: const TextStyle(
+                    fontFamily: 'NotoSansEthiopic',
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
+                ),
+                content: Text(
+                  viewModel.isAmharic
+                      ? 'እርግጠኛ ነዎት አካውንትዎን መሰረዝ እንደሚፈልጉ? ይህ እርምጃ ሊገለበጥ አይችልም።'
+                      : 'Are you sure you want to delete your account? This action cannot be undone.',
+                  style: const TextStyle(
+                    fontFamily: 'NotoSansEthiopic',
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: Text(
+                      viewModel.isAmharic ? 'ሰርዝ' : 'Cancel',
+                      style: const TextStyle(
+                        fontFamily: 'NotoSansEthiopic',
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: Text(
+                      viewModel.isAmharic ? 'አዎ፣ ሰርዝ' : 'Yes, Delete',
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontFamily: 'NotoSansEthiopic',
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+
+            if (shouldDelete == true && context.mounted) {
+              try {
+                await viewModel.deleteAccount(viewModel.currentUser?.id ?? '');
+                if (context.mounted) {
+                  Navigator.pushReplacementNamed(context, '/login');
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        viewModel.isAmharic 
+                            ? 'አካውንት ማሰረዝ አልተሳካም' 
+                            : 'Failed to delete account',
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            }
+          },
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFFF0423F),
             shape: RoundedRectangleBorder(

@@ -4,8 +4,6 @@ import 'package:lenat_mobile/view/auth/login_view.dart';
 import 'package:lenat_mobile/view/auth/verfication_view.dart';
 import 'package:lenat_mobile/view/market/cart/cart_view.dart';
 import 'package:lenat_mobile/view/market/checkout/checkout_view.dart';
-import 'package:lenat_mobile/view/content/content_feed_view.dart';
-import 'package:lenat_mobile/view/content/widget/content_feed_item.dart';
 import 'package:lenat_mobile/view/notification/notification_view.dart';
 import 'package:lenat_mobile/view/onboarding/onboarding_view.dart';
 import 'package:lenat_mobile/view/premium/premium_view.dart';
