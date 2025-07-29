@@ -9,6 +9,9 @@ import 'package:lenat_mobile/view/profile_setup/profile_setup_viewmodel.dart';
 import 'package:lenat_mobile/view/profile_edit/profile_edit_viewmodel.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:flutter/services.dart';
+import 'package:lenat_mobile/view/profile/widget/about_us_modal.dart';
+import 'package:lenat_mobile/view/profile/widget/security_info_modal.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -436,8 +439,8 @@ class _ProfilePageState extends State<ProfilePage> {
       children: [
         _buildListItem(
           HugeIcons.strokeRoundedSecurity,
-          viewModel.isAmharic ? 'የህብረት' : 'Community',
-          onTap: () {},
+          viewModel.isAmharic ? 'ደህንነት' : 'Security',
+          onTap: () => _showSecurityModal(context),
         ),
         _buildListItem(
           HugeIcons.strokeRoundedHelpCircle,
@@ -446,8 +449,8 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         _buildListItem(
           HugeIcons.strokeRoundedInformationCircle,
-          viewModel.isAmharic ? 'መረጃ' : 'Information',
-          onTap: () {},
+          viewModel.isAmharic ? 'ስለ ለእናት' : 'About Us',
+          onTap: () => _showAboutUsModal(context),
         ),
         _buildListItem(
           HugeIcons.strokeRoundedLogout02,
@@ -710,4 +713,26 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
+
+  void _showSecurityModal(BuildContext context) {
+    final viewModel = Provider.of<ProfileViewModel>(context, listen: false);
+    showDialog(
+      context: context,
+      builder: (context) => SecurityInfoModal(
+        isAmharic: viewModel.isAmharic,
+      ),
+    );
+  }
+
+  void _showAboutUsModal(BuildContext context) {
+    final viewModel = Provider.of<ProfileViewModel>(context, listen: false);
+    showDialog(
+      context: context,
+      builder: (context) => AboutUsModal(
+        isAmharic: viewModel.isAmharic,
+      ),
+    );
+  }
+
+  
 }
