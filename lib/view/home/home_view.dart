@@ -4,6 +4,7 @@ import 'package:lenat_mobile/core/colors.dart';
 import 'package:lenat_mobile/view/home/home_viewmodel.dart';
 import 'package:lenat_mobile/view/profile/profile_viewmodel.dart';
 import 'package:lenat_mobile/view/home/widget/premium_content_container.dart';
+import 'package:lenat_mobile/view/home/widget/full_screen_image_modal.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 
@@ -21,6 +22,7 @@ class _HomeViewState extends State<HomeView> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HomeViewModel>().getBlogs(context);
+      context.read<HomeViewModel>().getRandomHighlight(context);
     });
   }
 
@@ -32,8 +34,14 @@ class _HomeViewState extends State<HomeView> {
       builder: (context, viewModel, child) {
         return Scaffold(
           backgroundColor: Colors.white,
-          body: ListView(
-            children: [
+          body: RefreshIndicator(
+            onRefresh: () async {
+              print('Pull-to-refresh triggered');
+              context.read<HomeViewModel>().getBlogs(context);
+              context.read<HomeViewModel>().forceRefreshRandomHighlight(context);
+            },
+            child: ListView(
+              children: [
               const SizedBox(height: 10.0),
               // =============  Header ==============
               Stack(
@@ -135,71 +143,255 @@ class _HomeViewState extends State<HomeView> {
                   ],
                 ),
               ),
-              Container(
-                margin: EdgeInsets.all(5.0),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(20.0),
-                ),
-                width: MediaQuery.of(context).size.width,
-                padding: EdgeInsets.all(10.0),
-                child: Row(
-                  spacing: 10.0,
-                  children: [
-                    Container(
-                      width: 150.0,
-                      height: 180.0,
-                      clipBehavior: Clip.hardEdge,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20.0),
-                      ),
-                      child: Image.asset(
-                        'assets/images/image.png',
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    Container(
-                      width: 190.0,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "abc",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20.0,
-                            ),
+              if (viewModel.isLoadingHighlight)
+                Container(
+                  margin: EdgeInsets.all(5.0),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(20.0),
+                  ),
+                  width: MediaQuery.of(context).size.width,
+                  padding: EdgeInsets.all(10.0),
+                  child: Row(
+                    spacing: 10.0,
+                    children: [
+                      Container(
+                        width: 150.0,
+                        height: 180.0,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(20.0),
+                        ),
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: Primary,
                           ),
-                          Text(
-                            "Lorem ipsum dolor sit amet consectetur. Sagittis id libero.Lorem ipsum dolor sit amet consectetur. Sagittis id libero.",
-                          ),
-                          ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Primary,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 36,
+                        ),
+                      ),
+                      Container(
+                        width: 190.0,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              height: 20.0,
+                              width: 120.0,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(10.0),
                               ),
                             ),
-                            child: Text(
-                              "ተጨማሪ ያንብቡ",
+                            SizedBox(height: 10.0),
+                            Container(
+                              height: 60.0,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(10.0),
+                              ),
+                            ),
+                            SizedBox(height: 20.0),
+                            Container(
+                              height: 40.0,
+                              width: 100.0,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(10.0),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                )
+              else if (viewModel.randomHighlightPost != null)
+                Container(
+                  margin: EdgeInsets.all(5.0),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(20.0),
+                  ),
+                  width: MediaQuery.of(context).size.width,
+                  padding: EdgeInsets.all(10.0),
+                  child: Row(
+                    spacing: 10.0,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            barrierDismissible: true,
+                            builder: (context) => FullScreenImageModal(
+                              imageUrl: viewModel.randomHighlightPost!.media.url.isNotEmpty
+                                  ? viewModel.randomHighlightPost!.media.url
+                                  : 'assets/images/image.png',
+                              title: viewModel.randomHighlightPost!.description?.isNotEmpty == true
+                                  ? viewModel.randomHighlightPost!.description!
+                                  : (profileViewModel.isAmharic ? "የሳምንቱ ዋና መልእክት" : "Weekly Highlight"),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          width: 150.0,
+                          height: 180.0,
+                          clipBehavior: Clip.hardEdge,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20.0),
+                          ),
+                          child: viewModel.randomHighlightPost!.media.url.isNotEmpty
+                              ? Image.network(
+                                  viewModel.randomHighlightPost!.media.url,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) => Image.asset(
+                                    'assets/images/image.png',
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              : Image.asset(
+                                  'assets/images/image.png',
+                                  fit: BoxFit.cover,
+                                ),
+                        ),
+                      ),
+                      Container(
+                        width: 190.0,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              viewModel.randomHighlightPost!.description?.isNotEmpty == true
+                                  ? viewModel.randomHighlightPost!.description!
+                                  : (profileViewModel.isAmharic ? "የሳምንቱ ዋና መልእክት" : "Weekly Highlight"),
                               style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white,
-                                fontFamily: 'NotoSansEthiopic',
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20.0,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            SizedBox(height: 10.0),
+                            Text(
+                              profileViewModel.isAmharic 
+                                  ? "የተለያዩ ጥልቀት ያላቸው መረጃዎችን ለማየት ይህን ይጫኑ"
+                                  : "Tap to discover new and different content for your pregnancy journey",
+                              maxLines: 4,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            SizedBox(height: 20.0),
+                            ElevatedButton(
+                              onPressed: () {
+                                print('Refresh button pressed');
+                                // Refresh to get a new random highlight
+                                context.read<HomeViewModel>().forceRefreshRandomHighlight(context);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Primary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 36,
+                                ),
+                              ),
+                              child: Text(
+                                profileViewModel.isAmharic ? "አድስ" : "Refresh",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                  fontFamily: 'NotoSansEthiopic',
+                                ),
                               ),
                             ),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                )
+              else
+                Container(
+                  margin: EdgeInsets.all(5.0),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(20.0),
+                  ),
+                  width: MediaQuery.of(context).size.width,
+                  padding: EdgeInsets.all(10.0),
+                  child: Row(
+                    spacing: 10.0,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            barrierDismissible: true,
+                            builder: (context) => FullScreenImageModal(
+                              imageUrl: 'assets/images/image.png',
+                              title: profileViewModel.isAmharic ? "የሳምንቱ ዋና መልእክት" : "Weekly Highlight",
+                            ),
+                          );
+                        },
+                        child: Container(
+                          width: 150.0,
+                          height: 180.0,
+                          clipBehavior: Clip.hardEdge,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20.0),
                           ),
-                        ],
+                          child: Image.asset(
+                            'assets/images/image.png',
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
-                    )
-                  ],
+                      Container(
+                        width: 190.0,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              profileViewModel.isAmharic ? "የሳምንቱ ዋና መልእክት" : "Weekly Highlight",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20.0,
+                              ),
+                            ),
+                            Text(
+                              profileViewModel.isAmharic 
+                                  ? "የተለያዩ ጥልቀት ያላቸው መረጃዎችን ለማየት ይህን ይጫኑ"
+                                  : "Tap to discover new and different content for your pregnancy journey",
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                print('Fallback refresh button pressed');
+                                context.read<HomeViewModel>().forceRefreshRandomHighlight(context);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Primary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 36,
+                                ),
+                              ),
+                              child: Text(
+                                profileViewModel.isAmharic ? "አድስ" : "Refresh",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                  fontFamily: 'NotoSansEthiopic',
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
                 ),
-              ),
               Row(
                 children: [
                   Expanded(
@@ -349,7 +541,8 @@ class _HomeViewState extends State<HomeView> {
               SizedBox(height: 200.0),
             ],
           ),
-          floatingActionButton: FloatingActionButton(
+        ),
+        floatingActionButton: FloatingActionButton(
             backgroundColor: Color(0xFF9747FF),
             onPressed: () {
               Navigator.pushNamed(context, "/ai_chat");
