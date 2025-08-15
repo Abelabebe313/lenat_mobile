@@ -42,7 +42,7 @@ class _HomeViewState extends State<HomeView> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.115,
+                        height: MediaQuery.of(context).size.height * 0.13,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20.0),
                           child: RichText(
@@ -96,7 +96,7 @@ class _HomeViewState extends State<HomeView> {
                       ),
                       child: Center(
                         child: Text(
-                          profileViewModel.isAmharic ? "ሳምንቱ 10" : "Week 10",
+                          "${profileViewModel.currentUser?.pregnancyPeriod.toString()}ኛ ወር" ?? 'የእርግዝና ወር',
                           style: TextStyle(
                             fontWeight: FontWeight.w800,
                             fontSize: 16.0,
@@ -118,7 +118,7 @@ class _HomeViewState extends State<HomeView> {
                   spacing: 10.0,
                   children: [
                     Text(
-                      profileViewModel.isAmharic ? "የሳምንቱ ዋነኛ ነገር" : "Weekly Highlights",
+                      profileViewModel.isAmharic ? "የሳምንቱ ዋና መልእክት" : "Weekly Highlights",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18.0,
@@ -215,14 +215,17 @@ class _HomeViewState extends State<HomeView> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              profileViewModel.isAmharic ? "መዝገብ" : "Book",
+                              profileViewModel.isAmharic ? "የማማከር አገልግሎት" : "Book",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 20.0,
+                                fontSize: 16.0,
                               ),
                             ),
+                            SizedBox(
+                              height: 10.0,
+                            ),
                             Text(
-                              profileViewModel.isAmharic ? "ከእኛ ጋር የግል ምክር ለማግኘት የተለያዩ ባለሞያዎች ጋር የተወሰነ ቀን ይዘው ይግቡ።" : "Book an appointment with our experts to get personalized advice.",
+                              profileViewModel.isAmharic ? "ሀኪሞትን በተመቾት ሰዓት እና ቀን ለማማከር ቀጠሮ ይያዙ።" : "Book an appointment with our experts to get personalized advice.",
                             ),
                             SizedBox(
                               height: 10.0,
@@ -267,14 +270,17 @@ class _HomeViewState extends State<HomeView> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              profileViewModel.isAmharic ? "መማር" : "Learn",
+                              profileViewModel.isAmharic ? "ትምርታዊ ጥያቄዎች" : "Educational Trivia",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 20.0,
+                                fontSize: 16.0,
                               ),
                             ),
+                            SizedBox(
+                              height: 10.0,
+                            ),
                             Text(
-                              profileViewModel.isAmharic ? "ለእርሶ የተመረጡ ትምርታዊ ጥያቄዎች ይጫወቱ: አዲስ እውቀት ይጨብጡ" : "Play our trivia game to test your knowledge and learn new things.",
+                              profileViewModel.isAmharic ? "የተመረጡ ጥያቄዎችን በመመለስ ስለእርግዝና ያሎትን እውቀት ይፈትሹ!" : "Play our trivia game to test your knowledge and learn new things.",
                             ),
                             SizedBox(
                               height: 10.0,

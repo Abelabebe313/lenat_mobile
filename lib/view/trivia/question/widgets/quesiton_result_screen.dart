@@ -45,7 +45,7 @@ class ResultScreen extends StatelessWidget {
               ],
               const SizedBox(height: 24),
               Text(
-                isWinner ? 'አሸናፊ ሆነዋል!' : 'አልተሳካም!',
+                isWinner ? 'አሸናፊ ሆነዋል!' : 'እንደገና ይሞክሩ!',
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -54,7 +54,7 @@ class ResultScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'የተገኙት ነጥብ: $score/$totalQuestions (${passPercentage.toStringAsFixed(0)}%)',
+                'ያገኙት ነጥብ: $score/$totalQuestions (${passPercentage.toStringAsFixed(0)}%)',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 18,
@@ -62,19 +62,7 @@ class ResultScreen extends StatelessWidget {
                   fontFamily: 'NotoSansEthiopic',
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                isWinner
-                    ? 'በጣም ጥሩ ነው! ሁሉንም ጥያቄዎች በትክክል መለሱ።'
-                    : 'ደግመህ ሞክር። ለሚቀጥለው ጊዜ የተሻለ ውጤት ያገኛለህ።',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
-                  fontFamily: 'NotoSansEthiopic',
-                ),
-              ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 40),
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.7,
                 child: ElevatedButton(
@@ -90,7 +78,7 @@ class ResultScreen extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    isWinner ? 'እንደገና ለመጫወት' : 'ደግመህ ሞክር',
+                    isWinner ? 'እንደገና ለመጫወት' : 'እደገና ይሞክሩ',
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,

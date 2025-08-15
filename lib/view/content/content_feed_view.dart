@@ -5,9 +5,11 @@ import 'package:lenat_mobile/view/content/widget/content_feed_item.dart';
 import 'package:lenat_mobile/view/content/content_feed_viewmodel.dart';
 
 class ContentFeedView extends StatefulWidget {
+  final String title;
   final String category;
   const ContentFeedView({
     super.key,
+    required this.title,
     required this.category,
   });
 
@@ -74,7 +76,7 @@ class _ContentFeedViewState extends State<ContentFeedView> {
                     icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
                   ),
                   title: Text(
-                    widget.category.replaceAll('_', ' '),
+                    widget.title,
                     style: TextStyle(
                       fontFamily: 'NotoSansEthiopic',
                       fontSize: 18,

@@ -88,16 +88,7 @@ class _OnboardingViewState extends State<OnboardingView> {
               fontFamily: 'NotoSansEthiopic',
             ),
           ),
-          Text(
-            "የጤና እና የእርግዝና መረጃዎችን ለማግኘት\n የተሟሉ ተሞክሮ ይቀበሉ።",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: width * 0.04,
-              fontWeight: FontWeight.w400,
-              color: Colors.black,
-              fontFamily: 'NotoSansEthiopic',
-            ),
-          ),
+          
           const Spacer(),
           ElevatedButton(
             onPressed: () {

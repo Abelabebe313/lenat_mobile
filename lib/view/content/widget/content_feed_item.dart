@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:lenat_mobile/app/service_locator.dart';
 import 'package:lenat_mobile/services/feed_post_service.dart';
+import 'package:lenat_mobile/view/content/widget/share_options_modal.dart';
 
 class ContentFeedItem extends StatefulWidget {
   final String id;
@@ -68,6 +69,18 @@ class _ContentFeedItemState extends State<ContentFeedItem> {
         _isProcessing = false;
       });
     }
+  }
+
+  void _showShareOptions() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ShareOptionsModal(
+        imageUrl: widget.imageUrl,
+        description: widget.description,
+      ),
+    );
   }
 
   @override
@@ -170,9 +183,11 @@ class _ContentFeedItemState extends State<ContentFeedItem> {
                       radius: 24,
                       backgroundColor: Colors.white.withOpacity(0.8),
                       child: IconButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          _showShareOptions();
+                        },
                         icon: HugeIcon(
-                          icon: HugeIcons.strokeRoundedDownload02,
+                          icon: HugeIcons.strokeRoundedShare01,
                           color: Colors.black,
                           size: 24.0,
                         ),

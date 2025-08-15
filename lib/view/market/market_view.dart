@@ -12,6 +12,7 @@ import 'package:lenat_mobile/core/colors.dart';
 import 'package:lenat_mobile/view/market/market_viewmodel.dart';
 import 'package:lenat_mobile/view/market/widgets/product_detail_page.dart';
 import 'package:lenat_mobile/view/market/widgets/market_item_widget.dart';
+import 'package:lenat_mobile/models/catagory_model.dart';
 
 class MarketView extends StatefulWidget {
   const MarketView({super.key});
@@ -33,6 +34,59 @@ class _MarketViewState extends State<MarketView> {
       final cartViewModel = context.read<CartViewModel>();
       cartViewModel.loadCart();
     });
+  }
+
+  // Helper function to get category icon
+  IconData _getCategoryIcon(String categoryName) {
+    switch (categoryName.toLowerCase()) {
+      case 'pregnancy cloths':
+      case 'የእርግዝና አልባሳት':
+        return HugeIcons.strokeRoundedBaby01;
+      case 'kids cloths':
+      case 'የልጆች አልባሳት':
+        return HugeIcons.strokeRoundedClothes;
+      case 'kids toys':
+      case 'የልጆች መጮወቻ':
+        return HugeIcons.strokeRoundedToyTrain;
+      case 'gifts':
+      case 'የስጦታ ዕቃ':
+        return HugeIcons.strokeRoundedGift;
+      default:
+        return HugeIcons.strokeRoundedClothes;
+    }
+  }
+
+  // Helper function to get category translation
+  String _getCategoryTranslation(String categoryName, bool isAmharic) {
+    if (!isAmharic) {
+      // Return English name
+      switch (categoryName.toLowerCase()) {
+        case 'pregnancy cloths':
+          return 'Pregnancy Clothes';
+        case 'kids cloths':
+          return 'Kids Clothes';
+        case 'kids toys':
+          return 'Kids Toys';
+        case 'gifts':
+          return 'Gifts';
+        default:
+          return categoryName;
+      }
+    } else {
+      // Return Amharic translation
+      switch (categoryName.toLowerCase()) {
+        case 'pregnancy cloths':
+          return 'የእርግዝና አልባሳት';
+        case 'kids cloths':
+          return 'የልጆች አልባሳት';
+        case 'kids toys':
+          return 'የልጆች መጮወቻ';
+        case 'gifts':
+          return 'የስጦታ ዕቃ';
+        default:
+          return categoryName;
+      }
+    }
   }
 
   Widget _buildSearchBar(
@@ -114,6 +168,7 @@ class _MarketViewState extends State<MarketView> {
               centerTitle: true,
               elevation: 0,
               pinned: true,
+              automaticallyImplyLeading: false,
               title: Text(
                 profileViewModel.isAmharic ? "ገበያ" : "Market",
                 style: const TextStyle(
@@ -181,16 +236,7 @@ class _MarketViewState extends State<MarketView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 8),
-                    Text(
-                      profileViewModel.isAmharic
-                          ? "የተመረጡ እቃዎች የእናቶች እና የህፃናት ልብስ መጫወቻዎች እና ስጦታዎች የመጠባበቅ መስመር ነው።"
-                          : "Lorem ipsum dolor sit amet consectetur. Velit mauris etiam tortor adipiscing dis.",
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 14,
-                      ),
-                    ),
+                    
                     const SizedBox(height: 20),
                     Stack(
                       children: [
@@ -312,7 +358,7 @@ class _MarketViewState extends State<MarketView> {
                                                 ProductDetailPage(
                                                     product: newArrival),
                                           ),
-                                        );
+                                        ); 
                                       },
                                     child: Container(
                                       height: 40,
@@ -343,32 +389,33 @@ class _MarketViewState extends State<MarketView> {
                       ],
                     ),
                     const SizedBox(height: 20),
-                    Text(
-                      profileViewModel.isAmharic ? "አይነት" : "Categories",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.black,
-                      ),
-                    ),
+                    // Text(
+                    //   profileViewModel.isAmharic ? "አይነት" : "Categories",
+                    //   style: TextStyle(
+                    //     fontSize: 16,
+                    //     fontWeight: FontWeight.w700,
+                    //     color: Colors.black,
+                    //   ),
+                    // ),
                     SizedBox(
-                      height: 80,
+                      height: 100,
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
                         itemCount: marketViewModel.marketCatagory.length,
                         itemBuilder: (context, index) {
-                          final category =
-                              marketViewModel.marketCatagory[index];
-                          final label = category;
-                          // final icon = category["icon"];
+                          final category = marketViewModel.marketCatagory[index];
+                          final categoryName = category.name ?? '';
+                          final categoryIcon = _getCategoryIcon(categoryName);
+                          final categoryTranslation = _getCategoryTranslation(categoryName, profileViewModel.isAmharic);
+                          
                           return GestureDetector(
                             onTap: () {
-                              print('Tapped category: $label');
+                              print('Tapped category: $categoryName');
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => ProductListingView(
-                                    category: label,
+                                    category: category,
                                   ),
                                 ),
                               );
@@ -379,26 +426,41 @@ class _MarketViewState extends State<MarketView> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10),
-                                    height: 40,
+                                    padding: const EdgeInsets.all(12),
+                                    height: 50,
+                                    width: 50,
                                     decoration: BoxDecoration(
                                       color: const Color(0xFFF2F6FB),
-                                      borderRadius: BorderRadius.circular(10),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: Colors.grey.shade200,
+                                        width: 1,
+                                      ),
                                     ),
                                     child: Center(
-                                      child: Text(
-                                        label.name ?? '',
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w400,
-                                          color: Colors.black,
-                                        ),
+                                      child: HugeIcon(
+                                        icon: categoryIcon,
+                                        color: Primary,
+                                        size: 24.0,
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(height: 5),
+                                  const SizedBox(height: 8),
+                                  SizedBox(
+                                    width: 80,
+                                    child: Text(
+                                      categoryTranslation,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.black87,
+                                        fontFamily: 'NotoSansEthiopic',
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),

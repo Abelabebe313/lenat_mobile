@@ -147,7 +147,7 @@ class _LoginViewState extends State<LoginView> {
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
                               decoration: InputDecoration(
-                                hintText: "email@example.com or 09... or  07..",
+                                hintText: "ስልኮን ወይም ኢሜይሎን ያስገቡ",
                                 hintStyle: hintStyle,
                                 border: InputBorder.none,
                               ),
@@ -220,7 +220,7 @@ class _LoginViewState extends State<LoginView> {
                           ? const CircularProgressIndicator(color: Colors.white)
                           : Text(
                               profileViewModel.isAmharic
-                                  ? "ወደ ውስጥ ግባ"
+                                  ? "ጀምር"
                                   : "Login",
                               style: TextStyle(
                                 fontSize: inputFontSize,
@@ -232,33 +232,33 @@ class _LoginViewState extends State<LoginView> {
                     ),
 
                     const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          profileViewModel.isAmharic
-                              ? "መለያ የለዎትም?"
-                              : "Don't have an account?",
-                          style: TextStyle(
-                            fontSize: inputFontSize,
-                            fontWeight: FontWeight.w500,
-                            fontFamily: 'NotoSansEthiopic',
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {},
-                          child: Text(
-                            profileViewModel.isAmharic ? "ይመዝገቡ" : "Sign up",
-                            style: TextStyle(
-                              fontSize: inputFontSize,
-                              fontWeight: FontWeight.w700,
-                              color: Primary,
-                              fontFamily: 'NotoSansEthiopic',
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.center,
+                    //   children: [
+                    //     Text(
+                    //       profileViewModel.isAmharic
+                    //           ? "መለያ የለዎትም?"
+                    //           : "Don't have an account?",
+                    //       style: TextStyle(
+                    //         fontSize: inputFontSize,
+                    //         fontWeight: FontWeight.w500,
+                    //         fontFamily: 'NotoSansEthiopic',
+                    //       ),
+                    //     ),
+                    //     TextButton(
+                    //       onPressed: () {},
+                    //       child: Text(
+                    //         profileViewModel.isAmharic ? "ይመዝገቡ" : "Sign up",
+                    //         style: TextStyle(
+                    //           fontSize: inputFontSize,
+                    //           fontWeight: FontWeight.w700,
+                    //           color: Primary,
+                    //           fontFamily: 'NotoSansEthiopic',
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
                     // i want to show a google svg to login with google
                     // Row(
                     //   mainAxisAlignment: MainAxisAlignment.center,

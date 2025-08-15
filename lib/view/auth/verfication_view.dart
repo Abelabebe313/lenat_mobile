@@ -124,7 +124,7 @@ class _VerificationViewState extends State<VerificationView> {
           },
         ),
         title: Text(
-          profileViewModel.isAmharic ? 'ውጣ' : 'Back',
+          profileViewModel.isAmharic ? 'ተመለስ' : 'Back',
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w700,
@@ -173,7 +173,7 @@ class _VerificationViewState extends State<VerificationView> {
                   const SizedBox(height: 10),
                   Text(
                     profileViewModel.isAmharic
-                        ? "የማረጋገጫ ኮድ ወደ:\n$email ተሰጥቷል"
+                        ? "የማረጋገጫ ኮድ ወደ:\n$email ተልኳል"
                         : "OTP has been sent to:\n$email",
                     textAlign: TextAlign.center,
                     style: TextStyle(
@@ -259,17 +259,7 @@ class _VerificationViewState extends State<VerificationView> {
                       const SizedBox(width: 10),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  Text(
-                    "እቅፍ ይደርሳል ይህ የማይታወቅ ጽሁፍ ነው። ይህ የሚያስተዋውቅ ይህ የማይታወቅ ጽሁፍ ነው።",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: inputFontSize,
-                      fontWeight: FontWeight.w500,
-                      fontFamily: 'NotoSansEthiopic',
-                    ),
-                  ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 40),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -310,7 +300,7 @@ class _VerificationViewState extends State<VerificationView> {
                             : null,
                         child: Text(
                           profileViewModel.isAmharic
-                              ? "ይድገሙ"
+                              ? "ድጋሜ ላክ"
                               : "Resend Code",
                           style: TextStyle(
                             fontSize: inputFontSize,
