@@ -47,7 +47,7 @@ class PaymentSuccessPopupContent extends StatelessWidget {
                 const SizedBox(height: 6),
               ],
               const Text(
-                "ትእዛዝዎ በተሳካ ሁኔታ ተመዝግቧል። በቅርብ ጊዜ ውስጥ የእኛ ቡድን ያገኝዎታል። ስለ ትእዛዝዎ ለማንኛውም ጥያቄ የደንበኛ አገልግሎት ቡድናችንን ያነጋግሩ።",
+                "በቅርቡ ከለእናት የደንበኛ ድጋፍ ሰጪ አባላችን የሰልክ ጥራ ይደርሶታል።",
                 textAlign: TextAlign.start,
                 style: TextStyle(
                   fontSize: 14,

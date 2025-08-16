@@ -59,41 +59,6 @@ List<Map<String, dynamic>> _getmediaCategories(bool isAmharic) {
   ];
 }
 
-// final List<Map<String, String>> mediaCategories = [
-//   {
-//     'title': 'Prenatal Stage',
-//     'image': 'assets/images/first_month.png',
-//   },
-//   {
-//     'title': 'First Trimester',
-//     'image': 'assets/images/for_woman.png',
-//   },
-//   {
-//     'title': 'Second Trimester',
-//     'image': 'assets/images/for_kids.png',
-//   },
-//   {
-//     'title': 'Third Trimester',
-//     'image': 'assets/images/first_month.png',
-//   },
-//   {
-//     'title': 'Labor and Delivery',
-//     'image': 'assets/images/for_woman.png',
-//   },
-//   {
-//     'title': 'Postpartum',
-//     'image': 'assets/images/for_kids.png',
-//   },
-//   {
-//     'title': 'Child Growth',
-//     'image': 'assets/images/for_woman.png',
-//   },
-//   {
-//     'title': 'Fatherhood',
-//     'image': 'assets/images/for_kids.png',
-//   },
-// ];
-
 class _MediaViewState extends State<MediaView> {
   @override
   void initState() {
@@ -118,7 +83,7 @@ class _MediaViewState extends State<MediaView> {
         elevation: 0,
         automaticallyImplyLeading: false,
         title: Text(
-          profileViewModel.isAmharic ? "ሚድያ" : "Content",
+          profileViewModel.isAmharic ? "መረጃ" : "Content",
           style: const TextStyle(
             color: Colors.black,
             fontFamily: 'NotoSansEthiopic',
@@ -143,7 +108,7 @@ class _MediaViewState extends State<MediaView> {
             children: [
               const SizedBox(height: 24),
               SizedBox(
-                height: 200,
+                height: MediaQuery.of(context).size.height * 0.3,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: mediaCategories.length,
@@ -169,7 +134,7 @@ class _MediaViewState extends State<MediaView> {
               ),
               const SizedBox(height: 16),
               Text(
-                profileViewModel.isAmharic ? "የተወዳጅ ሚድያ" : "Bookmarked Content",
+                profileViewModel.isAmharic ? "የተመዘገበ መረጃ" : "Bookmarked Content",
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -185,7 +150,7 @@ class _MediaViewState extends State<MediaView> {
                             padding: const EdgeInsets.symmetric(vertical: 30.0),
                             child: Text(
                               profileViewModel.isAmharic
-                                  ? "ምንም የተመዘገበ ይዘት የለም"
+                                  ? "የተመዘገበ መረጃ የለም"
                                   : "No bookmarked content yet",
                               style: const TextStyle(
                                 fontSize: 16,
@@ -209,6 +174,8 @@ class _MediaViewState extends State<MediaView> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => ContentFeedView(
+                                        title: _getmediaCategories(true)[index]
+                                            ['title'],
                                         category: post.category,
                                       ),
                                     ),
@@ -244,7 +211,7 @@ class _MediaViewState extends State<MediaView> {
               color: Colors.grey.shade300,
               borderRadius: BorderRadius.circular(12),
               image: const DecorationImage(
-                image: AssetImage('assets/images/weekly_trivia.png'),
+                image: AssetImage('assets/images/Play.png'),
                 fit: BoxFit.fill,
               ),
             ),
@@ -254,21 +221,14 @@ class _MediaViewState extends State<MediaView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                profileViewModel.isAmharic ? "የሳምንቱ 8 ጥያቄዎች" : "Week 8 Trivia",
+                profileViewModel.isAmharic ? "የተመረጡ ጥያቄዎች" : "Selected Trivia",
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontFamily: 'NotoSansEthiopic',
                   fontSize: 14,
                 ),
               ),
-              const Text(
-                'lorem ipsum dolor sit amet,',
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 12,
-                  fontFamily: 'NotoSansEthiopic',
-                ),
-              ),
+              const SizedBox(height: 10),
               ElevatedButton(
                 onPressed: () {
                   Navigator.pushNamed(context, '/trivia');
@@ -307,39 +267,41 @@ class _MediaViewState extends State<MediaView> {
           context,
           MaterialPageRoute(
             builder: (context) => ContentFeedView(
+              title: _getmediaCategories(true)[index]['title'],
               category: category['backend_category'] ?? "Content Feed",
             ),
           ),
         );
       },
       child: Container(
-        width: 200,
+        width: 250,
+        padding: const EdgeInsets.all(12),
         margin: const EdgeInsets.only(right: 16),
         decoration: BoxDecoration(
-          color: Color(0xFFFBFBFB),
+          color: Color(0xFFF2F2F2),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Stack(
           children: [
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(0),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Image.asset(
                   'assets/images/${index + 1}.jpg',
                   fit: BoxFit.cover,
-                  width: 200,
-                  height: 200,
+                  width: 250,
+                  height: 250,
                 ),
               ),
             ),
             Positioned(
-              bottom: 4,
+              bottom: 0,
               left: 0,
               right: 0,
               child: Center(
                 child: Container(
-                    width: 170,
+                    width: double.infinity,
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: Color(0xFFD5E5F7),
@@ -351,8 +313,8 @@ class _MediaViewState extends State<MediaView> {
                         style: TextStyle(
                           color: Primary,
                           fontFamily: 'NotoSansEthiopic',
-                          fontWeight: FontWeight.w500,
-                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
                         ),
                       ),
                     )),

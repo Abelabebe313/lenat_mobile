@@ -88,10 +88,12 @@ class ProfileViewModel extends ChangeNotifier {
       _isUploading = true;
       notifyListeners();
 
-      // 1. Get pre-signed upload URL from the server
+      // 1. Extract the file name from the path
+      final fileName = imageFile.path.split('/').last;
+      print("fileName: $fileName");
       // final fileName = path.basename(imageFile.path);
       final profileUploadUrl =
-          await _authService.getProfileUploadUrl(imageFile.path);
+          await _authService.getProfileUploadUrl(fileName);
       
       if (profileUploadUrl == null) throw Exception("Failed to get upload URL");
 

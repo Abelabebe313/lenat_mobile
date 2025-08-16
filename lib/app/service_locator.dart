@@ -8,6 +8,7 @@ import 'package:lenat_mobile/services/minio_service.dart';
 import 'package:lenat_mobile/services/trivia_service.dart';
 import 'package:lenat_mobile/services/trivia_progress_service.dart';
 import 'package:lenat_mobile/services/market_service.dart';
+import 'package:lenat_mobile/services/share_service.dart';
 
 final locator = GetIt.instance;
 
@@ -29,4 +30,5 @@ void setupLocator() {
       () => TriviaProgressService());
   locator.registerLazySingleton<MarketPlaceService>(() => MarketPlaceService());
   locator.registerLazySingleton<CartService>(() => CartService());
+  locator.registerLazySingleton<ShareService>(() => ShareService());
 }

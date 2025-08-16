@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:lenat_mobile/app/service_locator.dart';
 import 'package:lenat_mobile/services/feed_post_service.dart';
+import 'package:lenat_mobile/services/share_service.dart';
 
 class ContentFeedItem extends StatefulWidget {
   final String id;
@@ -31,7 +32,9 @@ class _ContentFeedItemState extends State<ContentFeedItem> {
   late bool _isBookmarked;
   late bool _isLiked;
   final _feedService = locator<FeedPostService>();
+  final _shareService = locator<ShareService>();
   bool _isProcessing = false;
+  bool _isSharing = false;
 
   @override
   void initState() {
@@ -70,6 +73,49 @@ class _ContentFeedItemState extends State<ContentFeedItem> {
     }
   }
 
+  Future<void> _shareImage() async {
+    if (_isSharing) return;
+
+    setState(() {
+      _isSharing = true;
+    });
+
+    try {
+      await _shareService.shareImageLegacy(
+        imageUrl: widget.imageUrl,
+        description: widget.description,
+      );
+      
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Image shared successfully! 🖼️'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to share image: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      setState(() {
+        _isSharing = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -104,7 +150,7 @@ class _ContentFeedItemState extends State<ContentFeedItem> {
                 margin: const EdgeInsets.all(16),
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.7),
+                  color: Colors.white.withValues(alpha: 0.7),
                   border: Border.all(
                     color: Colors.white,
                     width: 1,
@@ -123,7 +169,7 @@ class _ContentFeedItemState extends State<ContentFeedItem> {
                   children: [
                     CircleAvatar(
                       radius: 24,
-                      backgroundColor: Colors.white.withOpacity(0.8),
+                      backgroundColor: Colors.white.withValues(alpha: 0.8),
                       child: IconButton(
                         onPressed: () {},
                         icon: _isLiked
@@ -141,7 +187,7 @@ class _ContentFeedItemState extends State<ContentFeedItem> {
                     ),
                     CircleAvatar(
                       radius: 24,
-                      backgroundColor: Colors.white.withOpacity(0.8),
+                      backgroundColor: Colors.white.withValues(alpha: 0.8),
                       child: IconButton(
                         onPressed: _isProcessing ? null : _toggleBookmark,
                         icon: _isProcessing
@@ -168,14 +214,23 @@ class _ContentFeedItemState extends State<ContentFeedItem> {
                     ),
                     CircleAvatar(
                       radius: 24,
-                      backgroundColor: Colors.white.withOpacity(0.8),
+                      backgroundColor: Colors.white.withValues(alpha: 0.8),
                       child: IconButton(
-                        onPressed: () {},
-                        icon: HugeIcon(
-                          icon: HugeIcons.strokeRoundedDownload02,
-                          color: Colors.black,
-                          size: 24.0,
-                        ),
+                        onPressed: _isSharing ? null : _shareImage,
+                        icon: _isSharing
+                            ? SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.black,
+                                ),
+                              )
+                            : HugeIcon(
+                                icon: HugeIcons.strokeRoundedShare01,
+                                color: Colors.black,
+                                size: 24.0,
+                              ),
                       ),
                     ),
                   ],
