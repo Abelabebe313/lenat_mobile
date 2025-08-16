@@ -205,7 +205,7 @@ class _ConsultViewState extends State<ConsultView> {
                   Padding(
                     padding: const EdgeInsets.only(left: 8.0),
                     child: Text(
-                      "የቦታ ዓይነት",
+                      " ሀኪሞን የሚያናግሩበት መንገድ",
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -415,7 +415,7 @@ class _ConsultViewState extends State<ConsultView> {
                         ),
                       )
                     : Text(
-                        "ቀጠሮ ይያዙ",
+                        "ሀኪሞን ለማናገር ቀጠሮ ይያዙ",
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
