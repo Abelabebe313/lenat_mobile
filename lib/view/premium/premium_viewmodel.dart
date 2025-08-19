@@ -3,6 +3,8 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:lenat_mobile/services/auth_service.dart';
 import 'package:lenat_mobile/services/local_storage.dart';
 import 'package:chapasdk/chapasdk.dart';
+import 'package:lenat_mobile/view/profile/profile_viewmodel.dart';
+import 'package:provider/provider.dart';
 
 import '../../app/service_locator.dart';
 
@@ -51,6 +53,8 @@ class PremiumViewModel extends ChangeNotifier {
   }
 
   Future<void> buySubscription(BuildContext context) async {
+    final profileViewModel = Provider.of<ProfileViewModel>(context);
+
     final client = GraphQLProvider.of(context).value;
 
     final result = await client.mutate(MutationOptions(
@@ -64,6 +68,7 @@ class PremiumViewModel extends ChangeNotifier {
       print(result.exception.toString());
     } else {
       print(result.data);
+      profileViewModel.refreshUserData();
       notifyListeners();
     }
   }
