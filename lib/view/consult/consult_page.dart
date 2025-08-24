@@ -19,7 +19,7 @@ class _ConsultViewState extends State<ConsultView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'ቀጠሮ ይያዙ',
+          'ሀኪሞን ለማናገር ቀጠሮ ይያዙ',
           style: TextStyle(
             color: Colors.black,
             fontFamily: 'NotoSansEthiopic',
@@ -205,7 +205,7 @@ class _ConsultViewState extends State<ConsultView> {
                   Padding(
                     padding: const EdgeInsets.only(left: 8.0),
                     child: Text(
-                      "የቦታ ዓይነት",
+                      "ሀኪሞን የሚያናግሩበት መንገድ",
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -347,6 +347,92 @@ class _ConsultViewState extends State<ConsultView> {
               //   ],
               // ),
 
+              // Day
+              Column(
+                spacing: 8.0,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: Text(
+                      "የመረጡትን ቀን ይፃፋ",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black,
+                        fontFamily: 'NotoSansEthiopic',
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: TextFieldColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: TextFormField(
+                      controller: viewModel.patientDayController,
+                      keyboardType: TextInputType.text,
+                      maxLines: 1,
+                      decoration: InputDecoration(
+                        hintText: "ማክሰኞ",
+                        hintStyle: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black.withOpacity(0.5),
+                          fontFamily: 'NotoSansEthiopic',
+                        ),
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),
+
+              // Time
+              Column(
+                spacing: 8.0,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: Text(
+                      "የመረጡትን ሰዓት ይፃፋ",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black,
+                        fontFamily: 'NotoSansEthiopic',
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: TextFieldColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: TextFormField(
+                      controller: viewModel.patientTimeController,
+                      keyboardType: TextInputType.text,
+                      maxLines: 1,
+                      decoration: InputDecoration(
+                        hintText: "04:30",
+                        hintStyle: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black.withOpacity(0.5),
+                          fontFamily: 'NotoSansEthiopic',
+                        ),
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),
+
               // Message
               Column(
                 spacing: 8.0,
@@ -390,6 +476,13 @@ class _ConsultViewState extends State<ConsultView> {
                 ],
               ),
 
+              Padding(
+                padding: EdgeInsets.only(bottom: 10.0),
+                child: Text(
+                  'የምክር አገልግሎቱ ለ30 ደቂቃ 250 ብር  ያስከፍላል።',
+                ),
+              ),
+
               // Submit Button
               ElevatedButton(
                 onPressed: () {
@@ -415,7 +508,7 @@ class _ConsultViewState extends State<ConsultView> {
                         ),
                       )
                     : Text(
-                        "ቀጠሮ ይያዙ",
+                        "ሀኪሞን ለማናገር ቀጠሮ ይያዙ",
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,

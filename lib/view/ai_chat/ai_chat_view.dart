@@ -31,7 +31,7 @@ class _AIChatViewState extends State<AIChatView> {
       builder: (context, viewModel, child) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text("የድጋፍ ቻት"),
+            title: const Text("የለእናት ኤአይ (AI) አማካራ"),
             actions: [
               // CLEAR CHAT
               IconButton(

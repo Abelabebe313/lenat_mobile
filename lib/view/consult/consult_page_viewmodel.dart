@@ -6,6 +6,8 @@ import 'package:lenat_mobile/services/auth_service.dart';
 class ConsultPageViewModel extends ChangeNotifier {
   final _authService = locator<AuthService>();
   final TextEditingController patientNotesController = TextEditingController();
+  final TextEditingController patientDayController = TextEditingController();
+  final TextEditingController patientTimeController = TextEditingController();
   String choosenPlace = "CALL";
   String selectedDisability = "ጉበት";
   String selectedSurgery = "ትርፍ አንጀት";
@@ -96,7 +98,10 @@ class ConsultPageViewModel extends ChangeNotifier {
         'payment_state': "UnPaid",
         'medical_condition': selectedDisability,
         'surgery_history': selectedSurgery,
-        'patient_notes': patientNotesController.text.trim(),
+        'patient_notes': patientNotesController.text.trim() +
+            patientDayController.text.trim() +
+            " " +
+            patientTimeController.text.trim(),
         'doctor_id': 'd44c1cb6-058e-4edf-b13f-659931801971',
         'user_id': currentUser!.id,
         'scheduled_at': DateTime.now().toIso8601String(),

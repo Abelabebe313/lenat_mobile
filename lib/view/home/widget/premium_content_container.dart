@@ -2,6 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:lenat_mobile/view/blog/blog.dart';
 import 'package:lenat_mobile/view/premium/premium_view.dart';
+import 'package:lenat_mobile/view/profile/profile_viewmodel.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PremiumContentContainer extends StatefulWidget {
@@ -24,13 +26,16 @@ class PremiumContentContainer extends StatefulWidget {
 class _PremiumContentContainerState extends State<PremiumContentContainer> {
   bool isPaid = false;
   void checkIfPaid() async {
+    final profileViewModel = Provider.of<ProfileViewModel>(context);
     final prefs = await SharedPreferences.getInstance();
-    isPaid = await prefs.getBool('isPaid') ?? false;
+    final isSubscriber = profileViewModel.currentUser!.role == 'subscriber';
+    isPaid = await prefs.getBool('isPaid') == true || isSubscriber == true
+        ? true
+        : false;
     setState(() {});
   }
 
   void lockAgain() async {
-    print("here3eeeeeeeeee");
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isPaid', false);
     isPaid = await prefs.getBool('isPaid') ?? false;
