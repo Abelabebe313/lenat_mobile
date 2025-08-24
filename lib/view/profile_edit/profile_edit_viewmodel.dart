@@ -17,6 +17,12 @@ class ProfileEditViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   UserModel? get currentUser => _currentUser;
 
+  // Method to set selected gender
+  void setSelectedGender(String gender) {
+    _selectedGender = gender;
+    notifyListeners();
+  }
+
   // Set callback for profile refresh
   void setProfileUpdateCallback(Function callback) {
     _onProfileUpdated = callback;

@@ -133,7 +133,9 @@ class _LoginViewState extends State<LoginView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            profileViewModel.isAmharic ? "ኢሜይል" : "Email",
+                            profileViewModel.isAmharic
+                                ? "ስልኮን ወይም ኢሜይሎን ያስገቡ"
+                                : "Enter your phone number or email",
                             style: titleStyle,
                           ),
                           const SizedBox(height: 6),

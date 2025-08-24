@@ -380,7 +380,7 @@ class _CheckOutViewState extends State<CheckOutView> {
             _buildPaymentOption('cash', Icons.payments, profileViewModel.isAmharic ? "ገንዘብ" : "Cash", viewModel),
             const SizedBox(width: 16),
             _buildPaymentOption(
-                'bank', Icons.account_balance, profileViewModel.isAmharic ? "ባንክ" : "Bank", viewModel),
+                'bank', Icons.phone_android, profileViewModel.isAmharic ? "በሞባይል ማስተላለፍ" : "Mobile Transfer", viewModel),
           ],
         ),
       ],

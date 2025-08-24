@@ -112,7 +112,7 @@ class MarketPlaceService {
         variables: {'category_id': categoryId},
       );
 
-      final QueryResult result = await client.queryWithTokenRefresh(options);
+      final QueryResult result = await client.queryWithTokenRefresh(options); 
 
       if (result.hasException) {
         print('Error fetching products by category: ${result.exception}');

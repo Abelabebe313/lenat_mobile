@@ -409,6 +409,13 @@ class _ProfileEditViewState extends State<ProfileEditView> {
                               onChanged: (String? newValue) {
                                 setState(() {
                                   selectedRelationShip = newValue!;
+                                  
+                                  // Automatically set gender to female if Mother is selected
+                                  if (newValue == "Mother") {
+                                    profileEditViewModel.setSelectedGender("female");
+                                  } else if (newValue == "Father") {
+                                    profileEditViewModel.setSelectedGender("male");
+                                  }
                                 });
                               },
                             ),

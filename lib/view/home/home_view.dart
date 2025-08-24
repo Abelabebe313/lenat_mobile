@@ -5,6 +5,7 @@ import 'package:lenat_mobile/view/home/home_viewmodel.dart';
 import 'package:lenat_mobile/view/profile/profile_viewmodel.dart';
 import 'package:lenat_mobile/view/home/widget/premium_content_container.dart';
 import 'package:lenat_mobile/view/home/widget/full_screen_image_modal.dart';
+import 'package:lenat_mobile/view/main/main_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 
@@ -104,10 +105,12 @@ class _HomeViewState extends State<HomeView> {
                       ),
                       child: Center(
                         child: Text(
-                          "${profileViewModel.currentUser?.pregnancyPeriod.toString()}ኛ ወር" ?? 'የእርግዝና ወር',
+                          profileViewModel.currentUser?.pregnancyPeriod != null
+                          ? "${profileViewModel.currentUser?.pregnancyPeriod.toString()}ኛ ወር"
+                          : 'የእርግዝና ወር',
                           style: TextStyle(
                             fontWeight: FontWeight.w800,
-                            fontSize: 16.0,
+                            fontSize: 14.0,
                             color: Primary,
                             fontFamily: 'NotoSansEthiopic',
                           ),
@@ -168,7 +171,7 @@ class _HomeViewState extends State<HomeView> {
                           ),
                         ),
                       ),
-                      Container(
+                      SizedBox(
                         width: 190.0,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,7 +256,7 @@ class _HomeViewState extends State<HomeView> {
                                 ),
                         ),
                       ),
-                      Container(
+                      SizedBox(
                         width: 190.0,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -280,7 +283,6 @@ class _HomeViewState extends State<HomeView> {
                             SizedBox(height: 20.0),
                             ElevatedButton(
                               onPressed: () {
-                                print('Refresh button pressed');
                                 // Refresh to get a new random highlight
                                 context.read<HomeViewModel>().forceRefreshRandomHighlight(context);
                               },
@@ -345,7 +347,7 @@ class _HomeViewState extends State<HomeView> {
                           ),
                         ),
                       ),
-                      Container(
+                      SizedBox(
                         width: 190.0,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -364,7 +366,6 @@ class _HomeViewState extends State<HomeView> {
                             ),
                             ElevatedButton(
                               onPressed: () {
-                                print('Fallback refresh button pressed');
                                 context.read<HomeViewModel>().forceRefreshRandomHighlight(context);
                               },
                               style: ElevatedButton.styleFrom(
@@ -402,49 +403,50 @@ class _HomeViewState extends State<HomeView> {
                         borderRadius: BorderRadius.circular(20.0),
                       ),
                       padding: EdgeInsets.all(10.0),
-                      child: Container(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              profileViewModel.isAmharic ? "የማማከር አገልግሎት" : "Book",
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            profileViewModel.isAmharic ? "የማማከር አገልግሎት" : "Book",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16.0,
+                            ),
+                          ),
+                          SizedBox(
+                            height: 10.0,
+                          ),
+                          Text(
+                            profileViewModel.isAmharic ? "ሀኪሞትን በተመቾት ሰዓት እና ቀን ለማማከር ቀጠሮ ይያዙ።" : "Book an appointment with our experts to get personalized advice.",
+                          ),
+                          SizedBox(
+                            height: 10.0,
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              // Navigate to the Consult page by updating the main view index
+                              context.read<MainViewModel>().updateIndex(2);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Primary,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 36,
+                              ),
+                            ),
+                            child: Text(
+                              profileViewModel.isAmharic ? "ቀጠሮ ያዝ" : "Book",
                               style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16.0,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                                fontFamily: 'NotoSansEthiopic',
                               ),
                             ),
-                            SizedBox(
-                              height: 10.0,
-                            ),
-                            Text(
-                              profileViewModel.isAmharic ? "ሀኪሞትን በተመቾት ሰዓት እና ቀን ለማማከር ቀጠሮ ይያዙ።" : "Book an appointment with our experts to get personalized advice.",
-                            ),
-                            SizedBox(
-                              height: 10.0,
-                            ),
-                            ElevatedButton(
-                              onPressed: () {},
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Primary,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 36,
-                                ),
-                              ),
-                              child: Text(
-                                profileViewModel.isAmharic ? "ቀጠሮ ያዝ" : "Book",
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.white,
-                                  fontFamily: 'NotoSansEthiopic',
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -456,7 +458,7 @@ class _HomeViewState extends State<HomeView> {
                         borderRadius: BorderRadius.circular(20.0),
                       ),
                       padding: EdgeInsets.all(10.0),
-                      child: Container(
+                      child: SizedBox(
                         width: 200.0,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
